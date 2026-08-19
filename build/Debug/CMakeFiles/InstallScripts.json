@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/brody/vscode_STMProjects/RedundantTempSensor/build/Debug/cmake_install.cmake",
+		"C:/Users/brody/vscode_STMProjects/RedundantTempSensor/build/Debug/cmake/stm32cubemx/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

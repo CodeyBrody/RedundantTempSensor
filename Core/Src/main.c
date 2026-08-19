@@ -21,6 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "functions.h"
+#include "sensor.h"
 
 /* USER CODE END Includes */
 
@@ -31,7 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SENSOR_COUNT 3
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,7 +53,8 @@ TIM_HandleTypeDef htim16;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+Sensor sensors[SENSOR_COUNT];
+float displayTemp = NAN;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,7 +91,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  discoverSensorArray(SENSOR_COUNT, sensors);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -108,6 +111,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
+  
+
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

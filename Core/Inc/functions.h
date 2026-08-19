@@ -1,7 +1,6 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#include <cstdlib>
 #include "sensor.h"
 
 __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]);

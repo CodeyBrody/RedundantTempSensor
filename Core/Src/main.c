@@ -66,7 +66,7 @@ static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
-
+void prepNextRead(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,7 +91,12 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  discoverSensorArray(SENSOR_COUNT, sensors);
+  /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
+  initSensorArray(SENSOR_COUNT, sensors);
+
+  //A variable to determine whether enough time has passed since the last read session
+  uint8_t readNow = 0;
+  
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -118,6 +123,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if(readNow){
+      readNow = 0;
+
+      readTempSensors(sensors);
+      displayTemp = determineTemp(sensors);
+      logData(displayTemp, sensors);
+      setAlerts(sensors);
+      prepNextRead();
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -416,7 +430,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void prepNextRead(void){
+  clearFaults(sensors);
+  displayTemp = NAN;
+  prepNextSensorRead(SENSOR_COUNT, sensors);
+}
 /* USER CODE END 4 */
 
 /**

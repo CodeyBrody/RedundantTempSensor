@@ -69,7 +69,7 @@ static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
-void prepNextRead(void);
+void prepNextSensorRead(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -433,10 +433,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void prepNextRead(void){
+void prepNextSensorRead(void){
   clearFaults(sensors);
   displayTemp = NAN;
-  prepNextSensorRead(SENSOR_COUNT, sensors);
 }
 /* USER CODE END 4 */
 

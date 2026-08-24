@@ -21,6 +21,5 @@ __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]);
 void initSensorArray(__uint8_t SensorCount, Sensor sensors[]);
 __uint8_t readTempSensors(Sensor sensors[]);
 void clearFaults(Sensor sensors[]);
-void prepNextSensorRead(__uint8_t SensorCount, Sensor sensors[]);
 
 #endif

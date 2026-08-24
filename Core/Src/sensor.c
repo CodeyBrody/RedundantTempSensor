@@ -93,6 +93,3 @@ void clearFaults(Sensor sensors[]){
     return;
 }
 
-void prepNextSensorRead(__uint8_t SensorCount, Sensor sensors[]){
-    clearFaults(sensors);
-}

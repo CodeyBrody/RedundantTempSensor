@@ -34,6 +34,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define SENSOR_COUNT 3
+#define BUFFER_SIZE 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,6 +56,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 Sensor sensors[SENSOR_COUNT];
 float displayTemp = NAN;
+
+uint8_t txBuf[BUFFER_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

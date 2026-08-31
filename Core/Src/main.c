@@ -22,7 +22,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "functions.h"
+#include "defines.h"
 #include "sensor.h"
+#include "hardware.h"
+#include "interrupts.h"
 
 /* USER CODE END Includes */
 
@@ -33,8 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SENSOR_COUNT 3
-#define BUFFER_SIZE 100
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,10 +56,12 @@ TIM_HandleTypeDef htim16;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
 Sensor sensors[SENSOR_COUNT];
 float displayTemp = NAN;
 
 uint8_t txBuf[BUFFER_SIZE];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,7 +99,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
-  initSensorArray(SENSOR_COUNT, sensors);
+  setupSensors(SENSOR_COUNT, sensors);
 
   //A variable to determine whether enough time has passed since the last read session
   uint8_t readNow = 0;
@@ -117,6 +121,12 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
+
+  //Setup timer 16 interrupt for reading the temp sensor registers every delta...
+  setTIMInterrupt();
+  
+  //Setup the USART Interrupt...
+  setUSARTInterrupt();
 
   /* USER CODE END 2 */
   
@@ -271,7 +281,6 @@ static void MX_RTC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN RTC_Init 2 */
-
   /* USER CODE END RTC_Init 2 */
 
 }

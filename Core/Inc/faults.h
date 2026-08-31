@@ -3,7 +3,7 @@
 
 #define COMM_FAULT 1
 #define ABOVE_BOUNDS 2
-#define ABOVE_BOUNDS 4
-#define OUTLIER 8
+#define BELOW_BOUNDS 4
+#define IS_OUTLIER 8
 
 #endif

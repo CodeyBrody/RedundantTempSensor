@@ -1,0 +1,30 @@
+#include "alerts.h"
+#include "hardware.h"
+#include "main.h"
+
+void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
+  for(int i = 0; i<SENSOR_COUNT; i++){
+    __uint8_t flags = sensors[i].faults;
+    if(flags){ /*If not valid...*/
+      if(flags | COMM_FAULT){ /*If Failure, set LED to red...*/
+        setLEDValue(sensors[i].RYG.RED, 1);
+        setLEDValue(sensors[i].RYG.YELLOW, 0);
+        setLEDValue(sensors[i].RYG.GREEN, 0);
+      } else{ /*...else if invalid, set the yellow LED...*/
+        setLEDValue(sensors[i].RYG.RED, 0);
+        setLEDValue(sensors[i].RYG.YELLOW, 1);
+        setLEDValue(sensors[i].RYG.GREEN, 0);
+      } /*...and if it is valid, set LED to green.*/
+    } else {
+        setLEDValue(sensors[i].RYG.RED, 0);
+        setLEDValue(sensors[i].RYG.YELLOW, 0);
+        setLEDValue(sensors[i].RYG.GREEN, 1);
+    }
+  }
+}
+
+void shiftRegWrite(const __uint16_t LEDVals){
+  HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi1, (__uint8_t*)&LEDVals, 1, HAL_MAX_DELAY);
+  HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_SET);
+}

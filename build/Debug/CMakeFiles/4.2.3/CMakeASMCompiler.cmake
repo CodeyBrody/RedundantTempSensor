@@ -2,7 +2,7 @@ set(CMAKE_ASM_COMPILER "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm
 set(CMAKE_ASM_COMPILER_ARG1 "")
 set(CMAKE_AR "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-ar.exe")
 set(CMAKE_ASM_COMPILER_AR "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-gcc-ar.exe")
-set(CMAKE_RANLIB ":")
+set(CMAKE_RANLIB "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-ranlib.exe")
 set(CMAKE_ASM_COMPILER_RANLIB "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-gcc-ranlib.exe")
 set(CMAKE_LINKER "C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.14.3.rel1.win32_1.0.100.202602081740/tools/bin/arm-none-eabi-g++.exe")
 set(CMAKE_LINKER_LINK "")

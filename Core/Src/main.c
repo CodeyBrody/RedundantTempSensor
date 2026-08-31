@@ -21,11 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "functions.h"
 #include "defines.h"
 #include "sensor.h"
 #include "hardware.h"
 #include "interrupts.h"
+#include "alerts.h"
 
 /* USER CODE END Includes */
 

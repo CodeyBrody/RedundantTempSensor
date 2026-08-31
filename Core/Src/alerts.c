@@ -2,6 +2,11 @@
 #include "hardware.h"
 #include "main.h"
 
+void setAlerts(Sensor sensors[]){
+  setSensorLeds(sensors);
+  return;
+}
+
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   for(int i = 0; i<SENSOR_COUNT; i++){
     __uint8_t flags = sensors[i].faults;
@@ -21,6 +26,18 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
         setLEDValue(sensors[i].RYG.GREEN, 1);
     }
   }
+}
+
+void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue){
+  if(LEDValue){
+    LEDVals |= (1<<LEDNumber);
+  } 
+  else {
+    LEDVals &= ~(1<<LEDNumber);
+  }
+  shiftRegWrite(LEDVals);
+
+  return;
 }
 
 void shiftRegWrite(const __uint16_t LEDVals){

@@ -2,6 +2,7 @@
 #define SENSOR_H
 #include <stdlib.h>
 #include <math.h>
+#include "hardware.h"
 
 typedef struct {
     __uint8_t address;
@@ -10,15 +11,14 @@ typedef struct {
     // float lastTemp;
     // char *lastTimeStamp;
     __uint8_t faults;
+    struct RYGLed RYG;
 } Sensor;
 
-extern SENSOR_COUNT;
 extern Sensor sensors[SENSOR_COUNT];
 extern uint8_t txBuf[];
 extern I2C_HandleTypeDef hi2c1;
 
-__uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]);
-void initSensorArray(__uint8_t SensorCount, Sensor sensors[]);
+void setupSensors(__uint8_t SensorCount, Sensor sensors[]);
 __uint8_t readTempSensors(Sensor sensors[]);
 void clearFaults(Sensor sensors[]);
 

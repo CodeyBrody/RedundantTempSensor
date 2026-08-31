@@ -2,6 +2,8 @@
 #include "faults.h"
 #include "main.h"
 #include "faults.h"
+#include "logging.h"
+#include "error_codes.h"
 
 uint8_t TEMP_REGISTER_ADDRESS = 0;
 float TEMP_CONVERSION_VAL = 0.0625;
@@ -9,6 +11,15 @@ float TEMP_CONVERSION_VAL = 0.0625;
 __int8_t TMP102_POSSIBLE_ADDRESSES[] = {0x48, 0x49, 0x4A, 0x4B};
 uint8_t TMP102_POSSIBLE_ADDRESS_COUNT = 4;
 __int8_t SENSOR_ADDRESSES[SENSOR_COUNT];
+
+void setupSensors(__uint8_t SensorCount, Sensor sensors[]){
+    int discoveredSensorCount = discoverSensorArray(SensorCount, sensors);
+    if(discoveredSensorCount != SensorCount){
+        logError(MISSING_SENSORS, discoveredSensorCount);
+    }
+    initSensorArray(SensorCount, sensors);
+}
+
 
 __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]){
     HAL_StatusTypeDef ret;
@@ -32,7 +43,7 @@ __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]){
 
 void initSensorArray(__uint8_t SensorCount, Sensor sensors[]){
     for(int i = 0; i< SensorCount; i++){
-        Sensor s = {SENSOR_ADDRESSES[i], NAN, 0};
+        Sensor s = {SENSOR_ADDRESSES[i], NAN, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
         sensors[i] = s;
     }
     return;

@@ -34,7 +34,10 @@ enable_language(C ASM)
 # Create an executable object type
 add_executable(${CMAKE_PROJECT_NAME}
     Core/Src/sensor.c
-    Core/Src/usb_comm.c)
+    Core/Src/usb_comm.c
+    Core/Src/alerts.c
+    Core/Src/determination_logic.c
+    Core/Src/logging.c)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)

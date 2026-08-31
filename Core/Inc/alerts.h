@@ -11,21 +11,4 @@ static __uint16_t LEDVals = 0; //Initializes a variable that is used to control 
 
 void setAlerts(Sensor sensors[]);
 
-void setAlerts(Sensor sensors[]){}
-
-void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue){
-  if(LEDValue){
-    LEDVals |= (1<<LEDNumber);
-  } 
-  else {
-    LEDVals &= ~(1<<LEDNumber);
-  }
-  shiftRegWrite(LEDVals);
-
-  return;
-}
-
-void shiftRegWrite(const __uint16_t LEDVals);
-void setSensorLeds(Sensor sensors[SENSOR_COUNT]);
-
 #endif

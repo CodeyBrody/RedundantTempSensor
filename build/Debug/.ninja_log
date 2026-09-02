@@ -78,3 +78,13 @@
 21	343	8100867907628760	CMakeFiles/RedundantTempSensor.dir/Core/Src/logging.c.obj	805602bc595748eb
 32	354	8100867907733275	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
 355	592	8100867910935778	RedundantTempSensor.elf	18734e549c5ea644
+3	1376	8100956440795057	CMakeFiles/RedundantTempSensor.dir/Core/Src/sensor.c.obj	e32065df3452489a
+494	1400	8100956445695094	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
+1400	1965	8100956454744015	RedundantTempSensor.elf	18734e549c5ea644
+9	332	8100962952627458	CMakeFiles/RedundantTempSensor.dir/Core/Src/usb_comm.c.obj	78dbe7c842f26bf5
+3	335	8100962952546380	CMakeFiles/RedundantTempSensor.dir/Core/Src/sensor.c.obj	e32065df3452489a
+16	351	8100962952698998	CMakeFiles/RedundantTempSensor.dir/Core/Src/determination_logic.c.obj	deab2ba5524bc750
+22	374	8100962952741273	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
+374	732	8100962956266385	RedundantTempSensor.elf	18734e549c5ea644
+3	338	8100964392236685	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
+339	616	8100964395599215	RedundantTempSensor.elf	18734e549c5ea644

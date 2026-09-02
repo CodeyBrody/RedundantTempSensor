@@ -70,6 +70,8 @@ void RTC_SetTime(void){
 }
 
 void setTIMInterrupt(){
+    /*Set the timer interrupt to sample the sensor measurements every DELTA seconds*/
+  __HAL_TIM_SET_AUTORELOAD(&htim16, DELTA * 10000 - 1);
     HAL_TIM_Base_Start_IT(&htim16);
     return;
 }

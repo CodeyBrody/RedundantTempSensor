@@ -2,9 +2,7 @@
 #define DETERMINATION_LOGIC_H
 #include "sensor.h"
 
-extern Sensor sensors[SENSOR_COUNT];
-
-float determineTemp(float display_temperature, Sensor sensors[]);
+float determineTemp(Sensor sensors[]);
 
 
 #endif /*DETERMINATION_LOGIC_H*/

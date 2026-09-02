@@ -1,15 +1,21 @@
 #include "usb_comm.h"
+#include "defines.h"
+#include "math.h"
 
-extern BUFFER_SIZE;
 extern __uint8_t txBuf[];
 extern UART_HandleTypeDef huart2;
 
 void print_temp_c(float temp){
-   float d_temp = temp*100;
-    sprintf((char*)txBuf,
-                "%u.%02u C\r\n",
-                ((unsigned int)temp / 100),
-                ((unsigned int)temp % 100));
+    if(isnan(temp)){
+        sprintf((char*)txBuf, "--.-- C");
+    }
+    else {
+        float d_temp = temp*100;
+        sprintf((char*)txBuf,
+                    "%u.%02u C",
+                    ((unsigned int)d_temp / 100),
+                    ((unsigned int)d_temp % 100));
+    }
     HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
 }
 
@@ -20,7 +26,7 @@ void usb_print(const char *message_body){
     return;
 }
 
-void usb_print_delimiter(char delimiter){
+void usb_print_delimiter(const char *delimiter){
     strcpy((char*)txBuf, delimiter);
     HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
 }

@@ -8,7 +8,7 @@ extern UART_HandleTypeDef huart2;
 extern RTC_HandleTypeDef hrtc;
 
 
-__uint8_t logData(float displayTemp, Sensor sensors[]);
+void logData(float displayTemp, Sensor sensors[]);
 void logError(int Error, int optionalInt);
 void logCurrentDateTime(__uint8_t txBuf[]);
 
@@ -47,4 +47,4 @@ void logCurrentDateTime(__uint8_t txBuf[]);
 //     return;
 // }
 
-#endif LOGGING_H
+#endif /*LOGGING_H*/

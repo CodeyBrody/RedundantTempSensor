@@ -1,20 +1,18 @@
 #include "determination_logic.h"
 #include "usb_comm.h"
+#include "logging.h"
 #include <math.h>
 #include "main.h"
 #include "faults.h"
-
-extern int IN_DEVELOPMENT;
+#include "defines.h"
+#include "error_codes.h"
 
 extern UART_HandleTypeDef huart2;
-extern DISAGREE_THRESHOLD;
-extern BUFFER_SIZE;
 extern __uint8_t txBuf[];
 
 int determineGreatestOutlier(float average, Sensor sensors[], float devOfTemp[]);
-float determineTemp(float display_temperature, Sensor sensors[]);
 
-float determineTemp(float display_temperature, Sensor sensors[]){
+float determineTemp(Sensor sensors[]){
     float devOfTemp[SENSOR_COUNT]; //Stores the deviations from the average of currently valid values, and stores 0 for invalid values
     float tally = 0; //Stores the tally of temperature measurements
     __uint8_t validCount = 0; //Stores the count of currently valid temp measurements
@@ -43,15 +41,15 @@ float determineTemp(float display_temperature, Sensor sensors[]){
 
     /*if no valid measurements, display an error, and keep displayTemp as NAN...*/
     if(validIndex == -1){
+        logError(ALL_SENSOR_READS_MISSING, -1);
         /*INSERT HERE IF YOU WANT AN ALERT FOR THIS CASE (E.G. BUZZER SOUND...)*/
-        validCount = -1;
-        return validCount;
+        return display_temperature;
     }
 
     /*If only one one currently valid temperature measurement being transmitted, use that one...*/
     if(validCount == 1){
         display_temperature = sensors[validIndex].currTemp;
-        return validCount;
+        return display_temperature;
     }
 
     /*Averages the valid temp measurements*/
@@ -69,7 +67,7 @@ float determineTemp(float display_temperature, Sensor sensors[]){
             average = ((average*validCount) - sensors[biggestIndex].currTemp)/(validCount-1);
             /*Mark the sensor's value as faulty by outlier*/
             sensors[biggestIndex].faults |= IS_OUTLIER;
-            usb_printf_int("Sensor %u reading marked invalid as outlier\r\n", biggestIndex);
+            logError(READ_MARKED_AS_OUTLIER, biggestIndex);
             validCount--;
             /*If there is only one reading left standing, after the second to last one was marked an 'outlier'...*/
             if((validCount == 1) && (SENSOR_COUNT > 1)){
@@ -86,18 +84,17 @@ float determineTemp(float display_temperature, Sensor sensors[]){
                     usb_printf_int("Sensor %u reading marked invalid as outlier\r\n", biggestIndex);
                     /*...including an EXTRA one declaring that all sensor readings were marked invalid*/
                 }
-                usb_printf_int("WARNING: All sensor readings marked as outliers...selecting value from sensor: %u \r\n", biggestIndex);
+                logError(ALL_READS_MARKED_INVALID, biggestIndex);
                 /*DESIGN CHOICE...display (as the display temperature) the last value invalidated*/
                 display_temperature = sensors[biggestIndex].currTemp;
-                validCount = 0;
-                return validCount;
+                return display_temperature;
             }
             allValid = 0;
         }
     }
     /*If more than one valid sensor reading, return the average.*/
     display_temperature = average;
-    return validCount;
+    return display_temperature;
 }
 
 

@@ -4,10 +4,20 @@
 #include "faults.h"
 #include "error_codes.h"
 
+void MISSING_SENSORS_MESSAGE(int Error, int optionalInt);
+void ALL_SENSOR_READS_MISSING_MESSAGE(int Error);
+void SENSOR_READ_MISSING_MESSAGE(int Error, int optionalInt);
+void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int optionalInt);
+void READ_ABOVE_BOUNDS_MESSAGE(int Error, int optionalInt);
+void READ_BELOW_BOUNDS_MESSAGE(int Error, int optionalInt);
+void READ_MARKED_AS_OUTLIER_MESSAGE(int Error, int optionalInt);
+void NOT_ENOUGH_LEDS_MESSAGE(int Error);
+const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]);
+
 void logError(int Error, int optionalInt){
   usb_print("E: ");
   logCurrentDateTime(txBuf);
-  usb_print_delimiter(' ');
+  usb_print_delimiter(" ");
 
   switch(Error){
     case MISSING_SENSORS:
@@ -44,30 +54,30 @@ void logError(int Error, int optionalInt){
   return;
 }
 
-__uint8_t logData(float displayTemp, Sensor sensors[]){
+void logData(float displayTemp, Sensor sensors[]){
     usb_print("D: ");
 
     logCurrentDateTime(txBuf);
-    usb_print_delimiter(' ');
+    usb_print_delimiter(" ");
 
     print_temp_c(displayTemp); 
 
     for(int i = 0; i<SENSOR_COUNT; i++){
-        usb_print_delimiter(' ');
+        usb_print_delimiter(" ");
         print_temp_c(sensors[i].currTemp);
     }
 
     for(int i = 0; i<SENSOR_COUNT; i++){
-        usb_print_delimiter(' ');
-        usb_print(fault_stringify(sensors->faults, txBuf));
+        usb_print_delimiter(" ");
+        usb_print(fault_stringify(sensors[i].faults, txBuf));
     }
 
     usb_print("\n\r");
-
+    return;
 }
 
 void logCurrentDateTime(__uint8_t txBuf[]){
-  __uint8_t buf[20];
+  __uint8_t buf[25];
   
     //Create Date and Time Structs to get the store the date and time of different readings
   RTC_TimeTypeDef t;
@@ -115,7 +125,7 @@ const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]){
 
 void MISSING_SENSORS_MESSAGE(int Error, int discoveredSensorCount){
   usb_print("Unable to discover the number of sensors expected.");
-  usb_print_delimiter(' ');
+  usb_print_delimiter(" ");
   usb_printf_int("Proceeding with %u sensors found.", discoveredSensorCount);
   return;
 }
@@ -132,7 +142,7 @@ void SENSOR_READ_MISSING_MESSAGE(int Error, int sensorNum){
 
 void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int selectedReadSensorNum){
   usb_print("All sensor readings marked as invalid.");
-  usb_print_delimiter(' ');
+  usb_print_delimiter(" ");
   usb_printf_int("Selecting read from sensor %u", selectedReadSensorNum);
   return;
 }

@@ -26,6 +26,11 @@
 #include "hardware.h"
 #include "interrupts.h"
 #include "alerts.h"
+#include "determination_logic.h"
+#include "logging.h"
+#include "usb_comm.h"
+#include "math.h"
+#include "error_codes.h"
 
 /* USER CODE END Includes */
 
@@ -57,10 +62,13 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-Sensor sensors[SENSOR_COUNT];
+static Sensor sensors[SENSOR_COUNT];
 float displayTemp = NAN;
 
 uint8_t txBuf[BUFFER_SIZE];
+
+//A variable to determine whether enough time has passed since the last read session
+volatile uint8_t readNow = 1;
 
 /* USER CODE END PV */
 
@@ -98,11 +106,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
-  setupSensors(SENSOR_COUNT, sensors);
-
-  //A variable to determine whether enough time has passed since the last read session
-  uint8_t readNow = 0;
   
   /* USER CODE END Init */
 
@@ -122,6 +125,9 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
+  /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
+  setupSensors(SENSOR_COUNT, sensors);
+
   //Setup timer 16 interrupt for reading the temp sensor registers every delta...
   setTIMInterrupt();
   
@@ -138,12 +144,13 @@ int main(void)
   {
     if(readNow){
       readNow = 0;
-
-      readTempSensors(sensors);
+      if(!readTempSensors(sensors)){
+        logError(ALL_SENSOR_READS_MISSING, -1);
+      }
       displayTemp = determineTemp(sensors);
       logData(displayTemp, sensors);
       setAlerts(sensors);
-      prepNextRead();
+      prepNextSensorRead();
     }
     /* USER CODE END WHILE */
 
@@ -442,6 +449,103 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+// void initSensors(Sensor sensors[SENSOR_COUNT], uint8_t sensor_addrs[SENSOR_COUNT]){
+//   for(int i = 0; i<SENSOR_COUNT; i++){
+//         Sensor s = {TMP102_ADDRESSES[i], NAN, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
+//     sensors[i] = s;
+//   }
+// }
+
+// float readSensor(Sensor s){
+//     uint8_t buf[12];  //Create a buffer
+//     HAL_StatusTypeDef ret;
+//     int16_t val; 
+//     float temp_c = NAN;
+//     buf[0] = 0;
+//     ret = HAL_I2C_Master_Transmit(&hi2c1, s.address, buf, 1, HAL_MAX_DELAY);
+//     if(ret != HAL_OK){ //If we get anything other than HAL_OK. copy error message to buffer and skip next steps...
+//       strcpy((char*)buf, "Error Tx\r\n");
+//       s.faults |= COMM_FAULT;
+//       s.currTemp = NAN;
+//     } else { //...but if HAL_OKAY was returned, request temp data.
+//       HAL_I2C_Master_Receive(&hi2c1, s.address, buf, 2, HAL_MAX_DELAY);
+//       if(ret != HAL_OK){ //If error receiving temp data, log a different error and skip next steps..
+//         strcpy((char*)buf, "Error Rx\r\n"); //...replacing potentially garbage data
+//         s.faults |= COMM_FAULT;
+//         s.currTemp = NAN;
+//       } else {/*...then calculate the temperature in Celsius from the returned "temperature value".*/
+//
+//         //Combine the bytes (format 0000|xxxxxxxx|xxxx -> first 8 x's from buf[0], last 4 from buf[1])
+//         val = ((uint16_t)buf[0]<<4 | buf[1]>>4);
+//
+//         //Convert to 2's complement, if the temperature is negative (the first bit is 1)
+//         if(val > 0x7FF){
+//           val |= 0xF000; //Sets the first 4 bits of val to 1, leaves the rest alone (which makes it 2's complement if it was before)
+//         }
+//
+//         //Convert to a float temperature value (in degrees Celsius)
+//         temp_c = val * 0.0625;
+
+//         // Convert the temperature into a string format
+//         float temp_c2 = temp_c*100; //Helps us separate the fractional part out (see calculations in function below)...
+//         sprintf((char*)buf,
+//                 "%u.%02u C\r\n",
+//                 ((unsigned int)temp_c2 / 100),
+//                 ((unsigned int)temp_c2 % 100));
+
+//       }
+//     }
+//   //Send out buffer (temperature or error message, depending on what happened above...)
+//   HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+
+//   return temp_c;
+// }
+
+// void testSensors(Sensor sensors[SENSOR_COUNT], uint8_t buf[BUFFER_SIZE]){
+//     for(int i = 0; i< 3; i++){
+//       sprintf((char*)buf, "Sensor %u: ", i);
+//       HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//       sensors[i].currTemp = readSensor(sensors[i]);
+//       /*If Read Failed...*/
+//       if(isnan(sensors[i].currTemp)){
+//         /*Log the Failure, and try again...*/
+//         sprintf((char*)buf, "Sensor %u read failure. Retrying...", i);
+//         HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//         sensors[i].currTemp = readSensor(sensors[i]);
+//         /*If failed again, log it...*/
+//         if(isnan(sensors[i].currTemp)){
+//           sprintf((char*)buf, "Second sensor %u read failure.\n", i);
+//           HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//           /*...and mark it as a sensor communication failure*/
+//           sensors[i].faults |= COMM_FAULT;
+//         }
+//       }
+//     }
+// }
+
+// void scanSensors(Sensor sensors[SENSOR_COUNT], uint8_t buf[BUFFER_SIZE]){
+//     for(int i = 0; i< 3; i++){
+//       sprintf((char*)buf, "Sensor %u: ", i);
+//       HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//       sensors[i].currTemp = readSensor(sensors[i]);
+//       /*If there was an error in reading the temperature*/
+//       if(isnan(sensors[i].currTemp)){
+//         /*Log the Failure, and try again...*/
+//         sprintf((char*)buf, "Sensor %u read failure. Retrying...", i);
+//         HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//         sensors[i].currTemp = readSensor(sensors[i]);
+//         /*If failed again, log it...*/
+//         if(isnan(sensors[i].currTemp)){
+//           sprintf((char*)buf, "Second sensor %u read failure.\r\n", i);
+//           HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+//           /*...and mark it as a sensor communication failure*/
+//           sensors[i].faults |= COMM_FAULT;
+//         }
+//       }
+//     }
+//   }
+
+
 void prepNextSensorRead(void){
   clearFaults(sensors);
   displayTemp = NAN;

@@ -1,0 +1,12 @@
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:17:6:logError	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:57:6:logData	24	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:79:6:logCurrentDateTime	104	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:102:13:fault_stringify	24	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:126:6:MISSING_SENSORS_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:133:6:ALL_SENSOR_READS_MISSING_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:138:6:SENSOR_READ_MISSING_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:143:6:ALL_READS_MARKED_INVALID_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:150:6:READ_ABOVE_BOUNDS_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:155:6:READ_BELOW_BOUNDS_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:160:6:READ_MARKED_AS_OUTLIER_MESSAGE	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/logging.c:165:6:NOT_ENOUGH_LEDS_MESSAGE	16	static

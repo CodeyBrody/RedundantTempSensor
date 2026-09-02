@@ -1,0 +1,5 @@
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/usb_comm.c:8:6:print_temp_c	24	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/usb_comm.c:22:6:usb_print	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/usb_comm.c:29:6:usb_print_delimiter	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/usb_comm.c:34:6:usb_println	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/usb_comm.c:46:6:usb_printf_int	16	static

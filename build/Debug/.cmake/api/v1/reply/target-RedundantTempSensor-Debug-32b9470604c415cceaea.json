@@ -42,7 +42,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 69,
+				"line" : 70,
 				"parent" : 0
 			},
 			{
@@ -136,7 +136,8 @@
 				6,
 				7,
 				8,
-				9
+				9,
+				10
 			]
 		},
 		{
@@ -187,7 +188,7 @@
 			"language" : "ASM",
 			"sourceIndexes" : 
 			[
-				10
+				11
 			]
 		}
 	],
@@ -256,21 +257,21 @@
 				6,
 				7,
 				8,
-				9
+				9,
+				10
 			]
 		},
 		{
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				10
+				11
 			]
 		},
 		{
 			"name" : "Object Libraries",
 			"sourceIndexes" : 
 			[
-				11,
 				12,
 				13,
 				14,
@@ -293,7 +294,8 @@
 				31,
 				32,
 				33,
-				34
+				34,
+				35
 			]
 		}
 	],
@@ -327,6 +329,12 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "Core/Src/logging.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "Core/Src/hardware.c",
 			"sourceGroupIndex" : 0
 		},
 		{

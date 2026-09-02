@@ -2,6 +2,7 @@
 #define SENSOR_H
 #include <stdlib.h>
 #include <math.h>
+#include "main.h"
 #include "hardware.h"
 
 typedef struct {
@@ -14,7 +15,6 @@ typedef struct {
     struct RYGLed RYG;
 } Sensor;
 
-extern Sensor sensors[SENSOR_COUNT];
 extern uint8_t txBuf[];
 extern I2C_HandleTypeDef hi2c1;
 

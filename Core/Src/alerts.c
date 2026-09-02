@@ -2,6 +2,14 @@
 #include "hardware.h"
 #include "main.h"
 
+static __uint16_t LEDVals = 0; //Initializes a variable that is used to control the shift register outputs 
+
+void setSensorLeds(Sensor sensors[SENSOR_COUNT]);
+
+void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue);
+
+void shiftRegWrite(const __uint16_t LEDVals);
+
 void setAlerts(Sensor sensors[]){
   setSensorLeds(sensors);
   return;
@@ -11,7 +19,7 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   for(int i = 0; i<SENSOR_COUNT; i++){
     __uint8_t flags = sensors[i].faults;
     if(flags){ /*If not valid...*/
-      if(flags | COMM_FAULT){ /*If Failure, set LED to red...*/
+      if(flags & COMM_FAULT){ /*If Failure, set LED to red...*/
         setLEDValue(sensors[i].RYG.RED, 1);
         setLEDValue(sensors[i].RYG.YELLOW, 0);
         setLEDValue(sensors[i].RYG.GREEN, 0);

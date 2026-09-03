@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Debug RedundantTempSensor",
             "cwd": "${workspaceFolder}",
@@ -15,6 +16,18 @@
             "servertype": "stlink",
             "interface": "swd",
             "device": "STM32L476RGTx"
+        },
+        { 
+            "name": "Release RedundantTempSensor", 
+            "cwd": "${workspaceFolder}", 
+            "request": "launch", 
+            "executable": "${workspaceFolder}/build/Release/RedundantTempSensor.elf", 
+            "type": "cortex-debug", 
+            "runToEntryPoint": "main", 
+            "showDevDebugOutput": "none", 
+            "servertype": "stlink", 
+            "interface": "swd", 
+            "device": "STM32L476RGTx" 
         }
     ]
 }

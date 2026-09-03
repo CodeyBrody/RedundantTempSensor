@@ -49,3 +49,5 @@
 665	1334	8101102236543407	RedundantTempSensor.elf	f185f403cfbcd7c1
 6	652	8101103603536803	CMakeFiles/RedundantTempSensor.dir/Core/Src/alerts.c.obj	4eabae3360f98792
 653	1217	8101103610006676	RedundantTempSensor.elf	f185f403cfbcd7c1
+6	699	8101106954142362	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
+700	1298	8101106961022068	RedundantTempSensor.elf	f185f403cfbcd7c1

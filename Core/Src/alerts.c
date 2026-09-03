@@ -6,7 +6,6 @@
 #define BEEP_LENGTH 500 //The length of a buzzer beep (in ms)
 
 static __uint16_t LEDVals = 0; //Initializes a variable that is used to control the shift register outputs 
-
 static uint8_t activeBuzzer = 0; // Keeps track of whether the buzzer is currently, well, buzzing
 static uint32_t buzzerStartTime = 0;
 static uint32_t buzzerDuration = 0;

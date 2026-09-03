@@ -25,24 +25,18 @@ float determineTemp(Sensor sensors[]){
     /*Determine number of valid, communicating sensors, and find their average temperature...*/
     for(int i = 0; i < SENSOR_COUNT; i++){
         if(sensors[i].faults){
-        /****************************DELETE LATER************************************/
-        if(IN_DEVELOPMENT){
-            usb_printf_int("ERROR: No valid sensor %u reading found...\r\n", i);
-        }
-        /****************************DELETE LATER************************************/
-        continue;
+            continue;
         }
         else{
-        validCount++;
-        tally+= sensors[i].currTemp;
-        validIndex = i;
+            validCount++;
+            tally+= sensors[i].currTemp;
+            validIndex = i;
         }
     }
 
     /*if no valid measurements, display an error, and keep displayTemp as NAN...*/
     if(validIndex == -1){
         logError(ALL_SENSOR_READS_MISSING, -1);
-        /*INSERT HERE IF YOU WANT AN ALERT FOR THIS CASE (E.G. BUZZER SOUND...)*/
         return display_temperature;
     }
 
@@ -75,17 +69,15 @@ float determineTemp(Sensor sensors[]){
                 biggestIndex = 0;
                 /*Find the last, unmarked reading...*/
                 while(!devOfTemp[biggestIndex]){
-                biggestIndex++;
+                    biggestIndex++;
                 }
                 /*...and mark it as also an invalid outlier*/
                 sensors[biggestIndex].faults = (sensors[biggestIndex].faults | IS_OUTLIER);
-                if(IN_DEVELOPMENT){
-                    /*Print a final error message...*/
-                    usb_printf_int("Sensor %u reading marked invalid as outlier\r\n", biggestIndex);
-                    /*...including an EXTRA one declaring that all sensor readings were marked invalid*/
-                }
+                /*Print a final error message...*/
+                logError(READ_MARKED_AS_OUTLIER, biggestIndex);
+                /*...including an EXTRA one declaring that all sensor readings were marked invalid*/
                 logError(ALL_READS_MARKED_INVALID, biggestIndex);
-                /*DESIGN CHOICE...display (as the display temperature) the last value invalidated*/
+                /*DESIGN CHOICE...display (as the display temperature) the last value "invalidated"*/
                 display_temperature = sensors[biggestIndex].currTemp;
                 return display_temperature;
             }

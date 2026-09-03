@@ -49,10 +49,17 @@ void initSensorArray(__uint8_t SensorCount, Sensor sensors[]){
 }
 
 void setupSensors(__uint8_t SensorCount, Sensor sensors[]){
+    /*The following code can be uncommented to discover which sensore are available at the start...
+      ...however, if this is done, the sensors that were not discovered at the start will ...
+      ...not be retried later in the program should they become available. */
+    /*NOTE: See comment in 'initSensorArray' regarding changing the array used to initialize
+            the Sensor data structures if you choose to use the 'discover sensors' route.*/
+
     // int discoveredSensorCount = discoverSensorArray(SensorCount, sensors);
     // if(discoveredSensorCount != SensorCount){
     //     logError(MISSING_SENSORS, discoveredSensorCount);
     // }
+
     initSensorArray(SensorCount, sensors);
 }
 
@@ -79,17 +86,11 @@ float readTempSensor(Sensor *s){
 
         //Convert to a float temperature value (in degrees Celsius)
         s->currTemp = sensor_value * TEMP_CONVERSION_VAL;
-        if(IN_DEVELOPMENT){
-            print_temp_c(s->currTemp);
-        }
         return 1;
       }
     }
     s->faults |= COMM_FAULT;
     s->currTemp = NAN;
-    if(IN_DEVELOPMENT){
-        usb_println("--.-- C");
-    }
     return 0;
 }
 
@@ -97,7 +98,8 @@ __uint8_t readTempSensors(Sensor sensors[]){
     uint8_t sensorsReadSuccessfully = 0;
     for(int i = 0; i<SENSOR_COUNT; i++){
         if(!readTempSensor(&sensors[i])){
-            /*Can decide if want to print error message from txBuf here later.*/
+            /*Can decide if want to print error message currently in txBuf from the readTempSensor function here.*/
+            /*Currently that message (explaining whether the error was in Tx or Rx data) is not printed.*/
             logError(SENSOR_READ_MISSING, i);
         }
         else{

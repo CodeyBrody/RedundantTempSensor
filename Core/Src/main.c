@@ -28,7 +28,6 @@
 #include "alerts.h"
 #include "determination_logic.h"
 #include "logging.h"
-#include "usb_comm.h"
 #include "math.h"
 #include "error_codes.h"
 #include "rtc.h"

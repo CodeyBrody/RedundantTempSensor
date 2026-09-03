@@ -1,19 +1,26 @@
 #include "alerts.h"
 #include "hardware.h"
 #include "main.h"
+#include "defines.h"
+
+#define BEEP_LENGTH 500 //The length of a buzzer beep (in ms)
 
 static __uint16_t LEDVals = 0; //Initializes a variable that is used to control the shift register outputs 
+
+static uint8_t activeBuzzer = 0; // Keeps track of whether the buzzer is currently, well, buzzing
+static uint32_t buzzerStartTime = 0;
+static uint32_t buzzerDuration = 0;
+
+typedef enum{
+  BEEP,
+  CONSTANT
+} buzzType;
 
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]);
 
 void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue);
 
 void shiftRegWrite(const __uint16_t LEDVals);
-
-void setAlerts(Sensor sensors[]){
-  setSensorLeds(sensors);
-  return;
-}
 
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   for(int i = 0; i<SENSOR_COUNT; i++){
@@ -52,4 +59,64 @@ void shiftRegWrite(const __uint16_t LEDVals){
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_RESET);
   HAL_SPI_Transmit(&hspi1, (__uint8_t*)&LEDVals, 1, HAL_MAX_DELAY);
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_SET);
+}
+
+void buzzerOn(void){
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+}
+
+void buzzerOff(void){
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
+}
+
+void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)*/){
+  activeBuzzer = 1;
+  buzzerStartTime = HAL_GetTick();
+  if(duration == BEEP){
+    buzzerDuration = BEEP_LENGTH;
+  } else {
+    buzzerDuration = 20000 * DELTA;
+  }
+  buzzerOn();
+}
+
+void setBuzzer(Sensor sensors[SENSOR_COUNT]){
+  uint8_t soundBuzzer = 0;
+  uint8_t missingCount = 0;
+  for(int i = 0; i < SENSOR_COUNT; i++){
+    if(sensors[i].faults){
+      if(sensors[i].faults & COMM_FAULT){
+        missingCount++;
+      }
+      if(sensors[i].lastFaults == sensors[i].faults){
+        continue;
+      } else {
+        soundBuzzer = 1;
+      }
+    }
+  }
+  if(missingCount == SENSOR_COUNT){
+    soundBuzzer = 2;
+  }
+  switch(soundBuzzer){
+    case 1: activateBuzzer(BEEP); break;
+    case 2: activateBuzzer(CONSTANT); break;
+    case 0: break;
+    default:
+      break;
+  }
+  return;
+}
+
+void updateBuzzer(void){
+  if(activeBuzzer && ((HAL_GetTick() - buzzerStartTime) >= buzzerDuration)){
+    activeBuzzer = 0;
+    buzzerOff();
+  }
+}
+
+void setAlerts(Sensor sensors[]){
+  setSensorLeds(sensors);
+  setBuzzer(sensors);
+  return;
 }

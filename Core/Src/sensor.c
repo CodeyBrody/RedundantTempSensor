@@ -42,7 +42,7 @@ __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]){
 void initSensorArray(__uint8_t SensorCount, Sensor sensors[]){
     for(int i = 0; i< SensorCount; i++){
         //MODIFY TMP102_ADDRESSES to SENSOR_ADDRESSES if using 'discover sensors' strategy
-        Sensor s = {TMP102_ADDRESSES[i], NAN, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
+        Sensor s = {TMP102_ADDRESSES[i], NAN, 0, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
         sensors[i] = s;
     }
     return;
@@ -109,6 +109,7 @@ __uint8_t readTempSensors(Sensor sensors[]){
 
 void clearFaults(Sensor sensors[]){
     for(int i = 0; i<SENSOR_COUNT; i++){
+        sensors[i].lastFaults = sensors[i].faults;
         sensors[i].faults = 0;
     }
     return;

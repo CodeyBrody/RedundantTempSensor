@@ -12,6 +12,7 @@ typedef struct {
     // float lastTemp;
     // char *lastTimeStamp;
     __uint8_t faults;
+    __uint8_t lastFaults;
     struct RYGLed RYG;
 } Sensor;
 

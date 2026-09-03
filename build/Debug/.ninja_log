@@ -60,3 +60,7 @@
 273	548	8101016623801398	RedundantTempSensor.elf	f185f403cfbcd7c1
 4	349	8101016961952411	CMakeFiles/RedundantTempSensor.dir/Core/Src/main.c.obj	cd56853d258c77b5
 349	614	8101016965401860	RedundantTempSensor.elf	f185f403cfbcd7c1
+3	293	8101020728345134	CMakeFiles/RedundantTempSensor.dir/Core/Src/logging.c.obj	805602bc595748eb
+293	630	8101020731238370	RedundantTempSensor.elf	f185f403cfbcd7c1
+4	284	8101023090302026	CMakeFiles/RedundantTempSensor.dir/Core/Src/usb_comm.c.obj	78dbe7c842f26bf5
+284	562	8101023093109138	RedundantTempSensor.elf	f185f403cfbcd7c1

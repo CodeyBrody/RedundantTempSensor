@@ -7,12 +7,12 @@ extern UART_HandleTypeDef huart2;
 
 void print_temp_c(float temp){
     if(isnan(temp)){
-        sprintf((char*)txBuf, "--.-- C");
+        sprintf((char*)txBuf, "--.--");
     }
     else {
         float d_temp = temp*100;
         sprintf((char*)txBuf,
-                    "%u.%02u C",
+                    "%u.%02u",
                     ((unsigned int)d_temp / 100),
                     ((unsigned int)d_temp % 100));
     }

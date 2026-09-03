@@ -6100,11 +6100,11 @@ LOAD C:/ST/STM32CubeIDE_2.1.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.exte
                 0x08007c00                        . = ALIGN (0x8)
  *(.rodata)
  .rodata        0x08007c00       0x20 CMakeFiles/RedundantTempSensor.dir/Core/Src/sensor.c.obj
- .rodata        0x08007c20       0x17 CMakeFiles/RedundantTempSensor.dir/Core/Src/usb_comm.c.obj
- *fill*         0x08007c37        0x1 
- .rodata        0x08007c38       0x5e CMakeFiles/RedundantTempSensor.dir/Core/Src/determination_logic.c.obj
- *fill*         0x08007c96        0x2 
- .rodata        0x08007c98      0x26e CMakeFiles/RedundantTempSensor.dir/Core/Src/logging.c.obj
+ .rodata        0x08007c20       0x13 CMakeFiles/RedundantTempSensor.dir/Core/Src/usb_comm.c.obj
+ *fill*         0x08007c33        0x1 
+ .rodata        0x08007c34       0x5e CMakeFiles/RedundantTempSensor.dir/Core/Src/determination_logic.c.obj
+ *fill*         0x08007c92        0x2 
+ .rodata        0x08007c94      0x272 CMakeFiles/RedundantTempSensor.dir/Core/Src/logging.c.obj
  *fill*         0x08007f06        0x2 
  .rodata        0x08007f08       0x16 CMakeFiles/RedundantTempSensor.dir/Core/Src/rtc.c.obj
  *fill*         0x08007f1e        0x2 

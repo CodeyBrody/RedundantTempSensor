@@ -58,17 +58,17 @@ void logData(float displayTemp, Sensor sensors[]){
     usb_print("D: ");
 
     logCurrentDateTime(txBuf);
-    usb_print_delimiter(" ");
+    usb_print_delimiter(", ");
 
     print_temp_c(displayTemp); 
 
     for(int i = 0; i<SENSOR_COUNT; i++){
-        usb_print_delimiter(" ");
+        usb_print_delimiter(", ");
         print_temp_c(sensors[i].currTemp);
     }
 
     for(int i = 0; i<SENSOR_COUNT; i++){
-        usb_print_delimiter(" ");
+        usb_print_delimiter(", ");
         usb_print(fault_stringify(sensors[i].faults, txBuf));
     }
 

@@ -21,6 +21,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "defines.h"
+#include "sensor.h"
+#include "hardware.h"
+#include "interrupts.h"
+#include "alerts.h"
+#include "determination_logic.h"
+#include "logging.h"
+#include "usb_comm.h"
+#include "math.h"
+#include "error_codes.h"
+#include "rtc.h"
 
 /* USER CODE END Includes */
 
@@ -52,6 +63,14 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+static Sensor sensors[SENSOR_COUNT];
+float displayTemp = NAN;
+
+uint8_t txBuf[BUFFER_SIZE];
+
+//A variable to determine whether enough time has passed since the last read session
+volatile uint8_t readNow = 1;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,7 +82,7 @@ static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
-
+void prepNextSensorRead(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -88,7 +107,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -107,12 +126,35 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
+  /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
+  setupSensors(SENSOR_COUNT, sensors);
 
+  //Setup timer 16 interrupt for reading the temp sensor registers every delta...
+  setTIMInterrupt();
+  
+  //Setup the USART Interrupt...
+  setUSARTInterrupt();
+
+  //Request Info to set RTC Clock
+  RTC_RequestTime();
+
+  /* USER CODE END 2 */
+  
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if(readNow){
+      readNow = 0;
+      if(!readTempSensors(sensors)){
+        logError(ALL_SENSOR_READS_MISSING, -1);
+      }
+      displayTemp = determineTemp(sensors);
+      logData(displayTemp, sensors);
+      setAlerts(sensors);
+      prepNextSensorRead();
+    }
+    updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be on
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -249,7 +291,6 @@ static void MX_RTC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN RTC_Init 2 */
-
   /* USER CODE END RTC_Init 2 */
 
 }
@@ -411,6 +452,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void prepNextSensorRead(void){
+  clearFaults(sensors);
+  displayTemp = NAN;
+}
 
 /* USER CODE END 4 */
 

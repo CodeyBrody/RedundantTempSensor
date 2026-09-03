@@ -1,0 +1,168 @@
+#include "logging.h"
+#include "string.h"
+#include "usb_comm.h"
+#include "faults.h"
+#include "error_codes.h"
+
+void MISSING_SENSORS_MESSAGE(int Error, int optionalInt);
+void ALL_SENSOR_READS_MISSING_MESSAGE(int Error);
+void SENSOR_READ_MISSING_MESSAGE(int Error, int optionalInt);
+void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int optionalInt);
+void READ_ABOVE_BOUNDS_MESSAGE(int Error, int optionalInt);
+void READ_BELOW_BOUNDS_MESSAGE(int Error, int optionalInt);
+void READ_MARKED_AS_OUTLIER_MESSAGE(int Error, int optionalInt);
+void NOT_ENOUGH_LEDS_MESSAGE(int Error);
+const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]);
+
+void logError(int Error, int optionalInt){
+  usb_print("E: ");
+  logCurrentDateTime(txBuf);
+  usb_print_delimiter(" ");
+
+  switch(Error){
+    case MISSING_SENSORS:
+      MISSING_SENSORS_MESSAGE(Error, optionalInt);
+      break;
+    case ALL_SENSOR_READS_MISSING:
+      ALL_SENSOR_READS_MISSING_MESSAGE(Error);
+      break;
+    case SENSOR_READ_MISSING:
+      SENSOR_READ_MISSING_MESSAGE(Error, optionalInt);
+      break;
+    case ALL_READS_MARKED_INVALID:
+      ALL_READS_MARKED_INVALID_MESSAGE(Error, optionalInt);
+      break;
+    case READ_ABOVE_BOUNDS:
+      READ_ABOVE_BOUNDS_MESSAGE(Error, optionalInt);
+      break;
+    case READ_BELOW_BOUNDS:
+      READ_BELOW_BOUNDS_MESSAGE(Error, optionalInt);
+      break;
+    case READ_MARKED_AS_OUTLIER:
+      READ_MARKED_AS_OUTLIER_MESSAGE(Error, optionalInt);
+      break;
+    case NOT_ENOUGH_LEDS:
+      NOT_ENOUGH_LEDS_MESSAGE(Error);
+      break;
+    default:
+      usb_print("Error logged with unrecognized error code.");
+      break;
+  }
+
+  usb_print("\n\r");
+
+  return;
+}
+
+void logData(float displayTemp, Sensor sensors[]){
+    usb_print("D: ");
+
+    logCurrentDateTime(txBuf);
+    usb_print_delimiter(", ");
+
+    print_temp_c(displayTemp); 
+
+    for(int i = 0; i<SENSOR_COUNT; i++){
+        usb_print_delimiter(", ");
+        print_temp_c(sensors[i].currTemp);
+    }
+
+    for(int i = 0; i<SENSOR_COUNT; i++){
+        usb_print_delimiter(", ");
+        usb_print(fault_stringify(sensors[i].faults, txBuf));
+    }
+
+    usb_print("\n\r");
+    return;
+}
+
+void logCurrentDateTime(__uint8_t txBuf[]){
+  __uint8_t buf[25];
+  
+    //Create Date and Time Structs to get the store the date and time of different readings
+  RTC_TimeTypeDef t;
+  RTC_DateTypeDef d;
+
+  HAL_RTC_GetTime(&hrtc, &t, RTC_FORMAT_BIN);
+  HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
+
+
+  sprintf((char*)buf, "%02d/%02d/%04d %02d:%02d:%02d", 
+                      d.Month,
+                      d.Date,
+                      2000+d.Year,
+                      t.Hours,
+                      t.Minutes,
+                      t.Seconds);
+
+    HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+  return;
+}
+
+const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]){
+  /*Create a string with symbols indicating the faults of the sensor
+    ^ => outlier, + => above sensor range, - => below sensor range, * => communication error */
+  __uint8_t index = 0;
+  if(fault_flag & COMM_FAULT){
+    buf[index] = '`';
+    index++;
+  }
+  if(fault_flag & IS_OUTLIER){
+    buf[index] = '*';
+    index++;
+  }
+  if(fault_flag & BELOW_BOUNDS){
+    buf[index] = '-';
+    index++;
+  }
+  if(fault_flag & ABOVE_BOUNDS){
+    buf[index] = '+';
+    index++;
+  }
+  buf[index] = '\0';
+  return (char*)buf;
+}
+
+void MISSING_SENSORS_MESSAGE(int Error, int discoveredSensorCount){
+  usb_print("Unable to discover the number of sensors expected.");
+  usb_print_delimiter(" ");
+  usb_printf_int("Proceeding with %u sensors found.", discoveredSensorCount);
+  return;
+}
+
+void ALL_SENSOR_READS_MISSING_MESSAGE(int Error){
+  usb_print("All Sensor Readings Missing.");
+  return;
+}
+
+void SENSOR_READ_MISSING_MESSAGE(int Error, int sensorNum){
+  usb_printf_int("Sensor %u Reading Missing.", sensorNum);
+  return;
+}
+
+void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int selectedReadSensorNum){
+  usb_print("All sensor readings marked as invalid.");
+  usb_print_delimiter(" ");
+  usb_printf_int("Selecting read from sensor %u", selectedReadSensorNum);
+  return;
+}
+
+void READ_ABOVE_BOUNDS_MESSAGE(int Error, int sensorNum){
+  usb_printf_int("Sensor %u reading marked invalid for being above the documented valid sensor temperature reading range.", sensorNum);
+  return;
+}
+
+void READ_BELOW_BOUNDS_MESSAGE(int Error, int sensorNum){
+  usb_printf_int("Sensor %u reading marked invalid for being below the documented valid sensor temperature reading range.", sensorNum);
+  return;
+}
+
+void READ_MARKED_AS_OUTLIER_MESSAGE(int Error, int sensorNum){
+  usb_printf_int("Sensor %u reading marked invalid as an outlier.", sensorNum);
+  return;
+}
+
+void NOT_ENOUGH_LEDS_MESSAGE(int Error){
+  usb_print("Insufficient LEDs for the number of sensors utilized.");
+  return;
+}

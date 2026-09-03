@@ -1,0 +1,6 @@
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:21:11:discoverSensorArray	40	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:42:6:initSensorArray	40	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:51:6:setupSensors	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:59:7:readTempSensor	32	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:96:11:readTempSensors	24	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/sensor.c:110:6:clearFaults	24	static

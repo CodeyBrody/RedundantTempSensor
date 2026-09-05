@@ -52,31 +52,46 @@ The physical architecture of this project may be viewed from the perspective of 
 
 ## Communication Protocol
 
+The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200.
+
+Messages can be sent either to or from the microcontroller, although the only task intended to be done through sending data to the microcontroller is setting the RTC (see later in this section).
+
+### Communication From the Microcontroller
+
 Messages sent from the microcontroller to a host computer connected via USART are structured with a header, a message body, and are terminated with a 
 carriage return and newline (`\r\n`). 
 
-The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. For example, for a message containing data, 
-the header would be as follows:
-
-`D: `
-
-There are two different headers corresponding to the different message types: 
+The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types: 
 - Data (`D: `)
 - Error (`E: `)
 
-### Data Messages
+#### Data Messages
 
-The message bodies of data messages are include the following information, separated by commas:
+The message bodies of data messages include the following information, separated by commas:
 - Timestamp - The timestamp for that specific batch of data
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
 - Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensors, separated by commas. (If a reading was missing,
   the value is transmitted as "--.--")
-- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, separated by commas, translated as follows:
-  - * -> Reading marked as an outlier.
+- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, with each string of faults (one for each sensor) separated by a comma, translated as follows:
   - ' -> Reading missing
+  - * -> Reading marked as an outlier.
   - ^ -> Reading above specified sensor operating range
   - v -> Reading below specified sensor operating range
-the message body is not terminated by a comma, but by a carriage return and newline.
+The message body is not terminated by a comma, but by a carriage return and newline.
+
+#### Error Messages
+
+Error messages begin with the error message header, followed by a message describing the error or situation that occurred that led to the sending of the message. They are also terminated by carriage return and newline characters.
+
+### Communication to the Microcontroller
+
+Communicating information via USART to the microcontroller triggers an interrupt, which receives data from the USART connection until a `\n` or `\r` is encountered, or until one less byte than the set size of the receiving buffer (by default 100 characters) is received (whichever comes first). 
+
+The only current task the firmware has been set up to handle via being communicated to by USB is setting the RTC, the process of which is explained below.
+
+#### Setting the RTC Via USART Communication
+
+If a `\n` of `\r` is encountered, the message is compared to the string "`SET_TIME`". If the string does not match that message, the buffer is reset. Otherwise (if `SET_TIME` us received), the microcontroller sends the message "`SEND_TIME\r\n`", and the next data received will be treated as the date, in the format "`YYYY/mm/dd HH:MM:SS`", using the 24 hour format. This complete date and time data should be terminated by a carriage return and/or a newline character.
 
 ## Build Instructions
 
@@ -125,8 +140,6 @@ The project uses the **CMake Tools** VSCode Extension with separate Debug and Re
 3. Select **CMake: Select Configure Preset** and choose either `Debug` or `Release`.
 4. Run **CMake: Configure**.
 5. Run **CMake: Build**.
-
-Alternatively, the CMake controls may be available in the VS Code status bar.
 
 ### Build from the Command Line
 
@@ -201,25 +214,17 @@ build/Release/RedundantTempSensor.elf
 
 > **Note:** The Release build is optimized for size and does not include debugging information, so source-level debugging is limited compared with the Debug build.
 
-## Design Decisions
-
-Explain interesting engineering decisions.
-
 ## Known Limitations
 
 - While the logic for determining a 'display temperature' (or a final temperature to share with the user based on the received temperature sensor readings) 
 can be scaled to any number of sensors, the TMP102 sensors being used can only be configured to use 4 different addresses. 
 - This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While
-  messages sent via USART can be viewed in a general Serial Monitor, this program relies on interacting with a software on the host computer to 
+  messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer to 
   configure it's RTC.
 
   To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
 
   If you would like to create your own, feel free to take a look at the **Communication Protocol** section above to see how data communicated over USART is structured.
-
-## Future Improvements
-
-...
 
 ## License
 License

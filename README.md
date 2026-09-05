@@ -140,8 +140,6 @@ Open the project directory in Visual Studio Code.
 
 ### Build with VS Code
 
-### Build with VS Code
-
 The project uses the **CMake Tools** VSCode Extension with separate Debug and Release presets.
 
 1. Open the project directory in Visual Studio Code.

@@ -48,6 +48,10 @@ The program includes code to:
 
 ## Architecture
 
+> **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accomodate a variable numbers of temperature sensors, the default settings of the software expect 3 temperature sensors. This setup will used in the diagrams and explanations that follow.
+
+> The astute engineer can discern how to modify the hardware (and what software constants may need to be changed) to use the software with other numbers of sensors. 
+
 The physical architecture of this project may be viewed from the perspective of the different connections between the microcontroller and the other components of the system. 
 
 ![A diagram showing the types of connections between different hardware components of the system, and purposes/jobs of different components in the system.](images/RTSHardwareArchDiagram.png "Hardware Architecture Diagram")

@@ -49,10 +49,13 @@ The program includes code to:
 ## Architecture
 
 > **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accomodate a variable numbers of temperature sensors, the default settings of the software expect 3 temperature sensors. This setup will used in the diagrams and explanations that follow.
-
 > The astute engineer can discern how to modify the hardware (and what software constants may need to be changed) to use the software with other numbers of sensors. 
 
-The physical architecture of this project may be viewed from the perspective of the different connections between the microcontroller and the other components of the system. 
+The system is intended to be loaded onto an STM32-L476RG microcontroller. TMP102 digital temperature sensors (by default 3) are connected to the microcontroller via a shared I2C bus, and are polled at fixed intervals. 
+
+The received sensor readings are then analyzed by the firmware, and a final 'display temperature' is determined. Based on both the readings from the sensors and the results of the determination logic running on the microcontroller, LED indicators associated with each sensor are then updated, and data is sent to a host computer via a USART connection.
+
+The following diagram visualizes connections between different physical components of the system.
 
 ![A diagram showing the types of connections between different hardware components of the system, and purposes/jobs of different components in the system.](images/RTSHardwareArchDiagram.png "Hardware Architecture Diagram")
 

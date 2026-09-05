@@ -50,6 +50,8 @@ The program includes code to:
 
 The physical architecture of this project may be viewed from the perspective of the different connections between the microcontroller and the other components of the system. 
 
+![A diagram showing the types of connections between different hardware components of the system, and purposes/jobs of different components in the system.](images/RTSHardwareArchDiagram.png "Hardware Architecture Diagram")
+
 ## Communication Protocol
 
 The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200.

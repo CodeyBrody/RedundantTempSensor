@@ -74,7 +74,7 @@ The message bodies of data messages include the following information, separated
   the value is transmitted as "--.--")
 - Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, with each string of faults (one for each sensor) separated by a comma, translated as follows:
   - ' -> Reading missing
-  - * -> Reading marked as an outlier.
+  - \* -> Reading marked as an outlier.
   - ^ -> Reading above specified sensor operating range
   - v -> Reading below specified sensor operating range
 The message body is not terminated by a comma, but by a carriage return and newline.

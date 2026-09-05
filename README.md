@@ -227,7 +227,6 @@ can be scaled to any number of sensors, the TMP102 sensors being used can only b
   If you would like to create your own, feel free to take a look at the **Communication Protocol** section above to see how data communicated over USART is structured.
 
 ## License
-License
 
 This repository contains original application code as well as software components generated or provided by STMicroelectronics and other third parties.
 

@@ -57,7 +57,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
       if(setTime == 1){
         //If the program progresses here, it should have received the time data
         RTC_SetTime();
-        setTime = 0;
       }
 
       //If "SET_TIME" was received...

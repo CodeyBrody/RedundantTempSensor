@@ -136,8 +136,6 @@ git clone https://github.com/CodeyBrody/RedundantTempSensor.git
 cd RedundantTempSensor
 ```
 
-Open the project directory in Visual Studio Code.
-
 ### Build with VS Code
 
 The project uses the **CMake Tools** VSCode Extension with separate Debug and Release presets.

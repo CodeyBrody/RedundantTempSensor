@@ -2,28 +2,26 @@
 
 ## Overview
 
-This project includes code for a redundant temperature sensor system to be run on an STM32L476RG microcontroller.
+This project includes code for a redundant temperature sensor system to be run on an STM32-L476RG microcontroller.
 
-Practically, this system:
+This system:
 - reads multiple temperature sensors (3 by default) at regular intervals,
 - determines which temperature sensor measurement readings are to be considered invalid based on factors such as:
   - whether a measurement deviates significantly from the other measurements received, or
-  - whether a measurement is outside of (above or below) the temperature sensor manufacture's specified operating range, and
-- based on that determination, determines a final "display temperature" value, which is sent (along with other information) to a
-  computer connected to the microcontroller.
+  - whether a measurement is outside of (above or below) the temperature sensor's specified operating range, and
+- based on that determination, determines a final "display temperature" value, which is sent (along with other information) to a computer connected to the microcontroller.
   
 The program includes code to:
 - Set LEDs associated with each sensor to indicate the status of the temperature reading associated with that sensor (e.g. reading marked Valid, Invalid, or Missing)
-- Operate a buzzer to sound when a sensor's readings transition to being marked as invalid or sensor readings become unavailable from a particular sensor.
+- Operate a buzzer that sounds when a sensor's readings transition to being marked as invalid or sensor readings become unavailable from a particular sensor.
 
-## Features
+## Topics/Technologies Involved
 
 - Multiple (redundant) TMP102 temperature sensors
 - I2C communication
 - SPI communication
 - UART communication
 - RTC timestamping
-- Non-blocking timing
 - Timer interrupt handling
 - USART interrupt handling
 
@@ -31,7 +29,7 @@ The program includes code to:
 
 - STM32 Nucleo-L476RG
 - TMP102 Temperature Sensors
-- 74HC595 IC Shift Registers
+- 74HC595 IC Shift Register(s)
 - USB -> micro-USB cable
 - Active Buzzer
 - 220Ω Resistors
@@ -48,10 +46,10 @@ The program includes code to:
 
 ## Architecture
 
-> **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accomodate a variable numbers of temperature sensors, the default settings of the software expect 3 temperature sensors. This setup will used in the diagrams and explanations that follow.
-> The astute engineer can discern how to modify the hardware (and what software constants may need to be changed) to use the software with other numbers of sensors. 
+> **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accommodate a variable number of temperature sensors, the default settings and code of the software overall expect 3 temperature sensors. This setup is used in the diagrams and explanations that follow.
+> The astute engineer can discern how to modify the hardware (and what software constants and lines of code may need to be changed) to use the software with other numbers of sensors. 
 
-The system is intended to be loaded onto an STM32-L476RG microcontroller. TMP102 digital temperature sensors (by default 3) are connected to the microcontroller via a shared I2C bus, and are polled at fixed intervals. 
+The system is intended to be loaded onto an STM32-L476RG microcontroller. TMP102 digital temperature sensors are connected to the microcontroller via a shared I2C bus, and are polled at fixed intervals. 
 
 The received sensor readings are then analyzed by the firmware, and a final 'display temperature' is determined. Based on both the readings from the sensors and the results of the determination logic running on the microcontroller, LED indicators associated with each sensor are then updated, and data is sent to a host computer via a USART connection.
 
@@ -67,7 +65,7 @@ Messages can be sent either to or from the microcontroller, although the only ta
 
 ### Communication From the Microcontroller
 
-Messages sent from the microcontroller to a host computer connected via USART are structured with a header, a message body, and are terminated with a 
+Messages sent from the microcontroller to a host computer connected via USART are structured with a header and a message body, and are terminated with a 
 carriage return and newline (`\r\n`). 
 
 The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types: 
@@ -77,10 +75,9 @@ The **header** consists of a letter identifying the type of message being transm
 #### Data Messages
 
 The message bodies of data messages include the following information, separated by commas:
-- Timestamp - The timestamp for that specific batch of data
+- Timestamp - The timestamp for the specific batch of data
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
-- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensors, separated by commas. (If a reading was missing,
-  the value is transmitted as "--.--")
+- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--")
 - Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, with each string of faults (one for each sensor) separated by a comma, translated as follows:
   - ' -> Reading missing
   - \* -> Reading marked as an outlier.
@@ -94,13 +91,17 @@ Error messages begin with the error message header, followed by a message descri
 
 ### Communication to the Microcontroller
 
-Communicating information via USART to the microcontroller triggers an interrupt, which receives data from the USART connection until a `\n` or `\r` is encountered, or until one less byte than the set size of the receiving buffer (by default 100 characters) is received (whichever comes first). 
+Communicating information via USART to the microcontroller triggers an interrupt, which receives data from the USART connection and places it into a buffer until a `\n` or `\r` is encountered, or until one less byte than the set size of the receiving buffer (by default 100 characters) is received (whichever comes first). 
 
-The only current task the firmware has been set up to handle via being communicated to by USB is setting the RTC, the process of which is explained below.
+The only current task the firmware has been set up to handle via being communicated to by USB is setting the microcontroller's RTC, the process of which is explained below.
 
 #### Setting the RTC Via USART Communication
 
-If a `\n` of `\r` is encountered, the message is compared to the string "`SET_TIME`". If the string does not match that message, the buffer is reset. Otherwise (if `SET_TIME` us received), the microcontroller sends the message "`SEND_TIME\r\n`", and the next data received will be treated as the date, in the format "`YYYY/mm/dd HH:MM:SS`", using the 24 hour format. This complete date and time data should be terminated by a carriage return and/or a newline character.
+The microcontroller will send a "`SEND_TIME\r\n`" message before entering normal operation. After this message is sent, the next data received will be treated as the date, in the format "`YYYY/mm/dd HH:MM:SS`", using the 24 hour format. This complete date and time data should be terminated by a carriage return and/or a newline character. Once that string is received, including the terminating carriage return and/or a newline character, that data will automatically be used to set the RTC. 
+
+The time may still be set after the first exchange of data if necessary (such as if an error occured, or the first data sent to the microcontroller isn't the time data in the correct string format). 
+
+When receiving later data via USART, if a `\n` or `\r` is encountered, the message is compared to the string "`SET_TIME`". If the string does not match that message, the buffer is reset. Otherwise (if `SET_TIME` _was_ received), the microcontroller sends the message "`SEND_TIME\r\n`", and the next data received will be treated as the date, in the same format as described above. Once that date is received, that data will automatically be used to set the RTC.
 
 ## Build Instructions
 
@@ -221,8 +222,6 @@ build/Release/RedundantTempSensor.elf
 
 ## Known Limitations
 
-- While the logic for determining a 'display temperature' (or a final temperature to share with the user based on the received temperature sensor readings) 
-can be scaled to any number of sensors, the TMP102 sensors being used can only be configured to use 4 different addresses. 
 - This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While
   messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer to 
   configure it's RTC.

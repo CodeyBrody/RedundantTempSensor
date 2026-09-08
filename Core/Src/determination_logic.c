@@ -79,6 +79,7 @@ float determineTemp(Sensor sensors[]){
     /*If only one one currently valid temperature measurement being transmitted, use that one...*/
     if(validCount == 1){
         display_temperature = sensors[validIndex].currTemp;
+        invalidateOutOfBounds(sensors);
         return display_temperature;
     }
 

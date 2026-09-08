@@ -223,8 +223,7 @@ build/Release/RedundantTempSensor.elf
 ## Known Limitations
 
 This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While
-  messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer to 
-  configure it's RTC.
+  messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure it's RTC.
 
   To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
 

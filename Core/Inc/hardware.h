@@ -4,6 +4,9 @@
 
 #define SENSOR_COUNT 3
 
+#define UPPER_BOUND 125.0
+#define LOWER_BOUND -40.0
+
 /*SPI2 Defines (for communicating with shift register)*/
 #define LATCH_GPIO_PORT     GPIOB
 #define LATCH_PIN           GPIO_PIN_4

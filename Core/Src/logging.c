@@ -143,7 +143,11 @@ void SENSOR_READ_MISSING_MESSAGE(int Error, int sensorNum){
 void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int selectedReadSensorNum){
   usb_print("All sensor readings marked as invalid.");
   usb_print_delimiter(" ");
-  usb_printf_int("Selecting read from sensor %u", selectedReadSensorNum);
+  if(selectedReadSensorNum == -1){ //This is used to indicate that an average temp is being displayed, not any one sensors' values
+    usb_print("Selecting average of non-outlier temperature readings");
+  } else{
+    usb_printf_int("Selecting read from sensor %u", selectedReadSensorNum);
+  }
   return;
 }
 

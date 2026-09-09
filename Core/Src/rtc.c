@@ -4,7 +4,7 @@
 #include "interrupts.h"
 #include "ctype.h"
 
-extern __uint8_t rxBuf[BUFFER_SIZE];  //A buffer to receive data over USART
+extern uint8_t rxBuf[BUFFER_SIZE];  //A buffer to receive data over USART
 extern RTC_HandleTypeDef hrtc;
 extern volatile uint8_t setTime;
 
@@ -19,8 +19,8 @@ uint8_t check_bounds(uint8_t num, uint8_t upper_bound, uint8_t lower_bound){
   return (num <= upper_bound && num >= lower_bound);
 }
 
-__uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
-  __uint8_t t[12] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
+  uint8_t t[12] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 
   if (sDate.Month < 3) {sDate.Year -= 1;}
 

@@ -6,21 +6,21 @@
 #include "hardware.h"
 
 typedef struct {
-    __uint8_t address;
+    uint8_t address;
     float currTemp;
     // char *currTimeStamp; /*Can possibly use these later...for now, there's no use for them.*/
     // float lastTemp;
     // char *lastTimeStamp;
-    __uint8_t faults;
-    __uint8_t lastFaults;
+    uint8_t faults;
+    uint8_t lastFaults;
     struct RYGLed RYG;
 } Sensor;
 
 extern uint8_t txBuf[];
 extern I2C_HandleTypeDef hi2c1;
 
-void setupSensors(__uint8_t SensorCount, Sensor sensors[]);
-__uint8_t readTempSensors(Sensor sensors[]);
+void setupSensors(uint8_t SensorCount, Sensor sensors[]);
+uint8_t readTempSensors(Sensor sensors[]);
 void clearFaults(Sensor sensors[]);
 
 #endif

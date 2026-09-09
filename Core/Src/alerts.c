@@ -5,7 +5,7 @@
 
 #define BEEP_LENGTH 500 //The length of a buzzer beep (in ms)
 
-static __uint16_t LEDVals = 0; //Initializes a variable that is used to control the shift register outputs 
+static uint16_t LEDVals = 0; //Initializes a variable that is used to control the shift register outputs 
 static uint8_t activeBuzzer = 0; // Keeps track of whether the buzzer is currently, well, buzzing
 static uint32_t buzzerStartTime = 0;
 static uint32_t buzzerDuration = 0;
@@ -17,13 +17,13 @@ typedef enum{
 
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]);
 
-void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue);
+void setLEDValue(uint8_t LEDNumber, uint16_t LEDValue);
 
-void shiftRegWrite(const __uint16_t LEDVals);
+void shiftRegWrite(const uint16_t LEDVals);
 
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   for(int i = 0; i<SENSOR_COUNT; i++){
-    __uint8_t flags = sensors[i].faults;
+    uint8_t flags = sensors[i].faults;
     if(flags){ /*If not valid...*/
       if(flags & COMM_FAULT){ /*If Failure, set LED to red...*/
         setLEDValue(sensors[i].RYG.RED, 1);
@@ -42,7 +42,7 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   }
 }
 
-void setLEDValue(__uint8_t LEDNumber, __uint16_t LEDValue){
+void setLEDValue(uint8_t LEDNumber, __uint16_t LEDValue){
   if(LEDValue){
     LEDVals |= (1<<LEDNumber);
   } 

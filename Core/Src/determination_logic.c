@@ -50,8 +50,8 @@ uint8_t invalidateOutOfBounds(Sensor sensors[]){
 float determineTemp(Sensor sensors[]){
     float devOfTemp[SENSOR_COUNT]; //Stores the deviations from the average of currently valid values, and stores 0 for invalid values
     float tally = 0; //Stores the tally of temperature measurements
-    __uint8_t validCount = 0; //Stores the count of currently valid temp measurements
-    __uint8_t allValid = 0; //Determines when enough is enough, when all remaining measurements are considered valid (treated as a boolean variable)
+    uint8_t validCount = 0; //Stores the count of currently valid temp measurements
+    uint8_t allValid = 0; //Determines when enough is enough, when all remaining measurements are considered valid (treated as a boolean variable)
     float average = 0; //Stores the current average of the remaining temp values
     float display_temperature = NAN;
 
@@ -85,7 +85,7 @@ float determineTemp(Sensor sensors[]){
     /*Averages the valid temp measurements*/
     average = tally/validCount;
 
-    __uint8_t biggestIndex = 0; //Stores the index of the sensor with the highest variation from the average
+    uint8_t biggestIndex = 0; //Stores the index of the sensor with the highest variation from the average
     while(!allValid){
         allValid = 1;
         biggestIndex = determineGreatestOutlier(average, sensors, devOfTemp);
@@ -137,7 +137,7 @@ float determineTemp(Sensor sensors[]){
 }
 
 int determineGreatestOutlier(float average, Sensor sensors[], float devOfTemp[]){
-    __uint8_t biggestIndex = 0; //Stores the index of the sensor with the highest variation from the average
+    uint8_t biggestIndex = 0; //Stores the index of the sensor with the highest variation from the average
     for(int i = 0; i < SENSOR_COUNT; i++){
         if(sensors[i].faults){devOfTemp[i] = 0;}
         else{

@@ -14,7 +14,7 @@ void READ_MARKED_AS_OUTLIER_MESSAGE(int optionalInt);
 void NOT_ENOUGH_LEDS_MESSAGE();
 void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE();
 void RTC_FORMATTING_ERROR_MESSAGE();
-const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]);
+const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
 void logError(int Error, int optionalInt){
   usb_print("E: ");
@@ -85,7 +85,7 @@ void logData(float displayTemp, Sensor sensors[]){
 }
 
 void logCurrentDateTime(){
-  __uint8_t buf[25];
+  uint8_t buf[25];
   
     //Create Date and Time Structs to get the store the date and time of different readings
   RTC_TimeTypeDef t;
@@ -107,10 +107,10 @@ void logCurrentDateTime(){
   return;
 }
 
-const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]){
+const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]){
   /*Create a string with symbols indicating the faults of the sensor
     ^ => outlier, + => above sensor range, - => below sensor range, * => communication error */
-  __uint8_t index = 0;
+  uint8_t index = 0;
   if(fault_flag & COMM_FAULT){
     buf[index] = '`';
     index++;

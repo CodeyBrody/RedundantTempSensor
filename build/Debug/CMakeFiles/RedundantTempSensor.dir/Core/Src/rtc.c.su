@@ -1,0 +1,5 @@
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/rtc.c:11:9:calculate_time	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/rtc.c:18:9:check_bounds	16	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/rtc.c:22:9:SakamotoAlgo	32	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/rtc.c:30:9:RTC_SetTime	40	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/rtc.c:103:6:RTC_RequestTime	8	static

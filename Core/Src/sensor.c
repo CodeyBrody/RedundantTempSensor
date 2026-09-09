@@ -18,7 +18,7 @@ uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
 
 
-__uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]){
+uint8_t discoverSensorArray(uint8_t SensorCount, Sensor sensors[]){
     HAL_StatusTypeDef ret;
     uint8_t discoveredSensorCount = 0;
 
@@ -39,7 +39,7 @@ __uint8_t discoverSensorArray(__uint8_t SensorCount, Sensor sensors[]){
     return discoveredSensorCount;
 }
 
-void initSensorArray(__uint8_t SensorCount, Sensor sensors[]){
+void initSensorArray(uint8_t SensorCount, Sensor sensors[]){
     for(int i = 0; i< SensorCount; i++){
         //MODIFY TMP102_ADDRESSES to SENSOR_ADDRESSES if using 'discover sensors' strategy
         Sensor s = {TMP102_ADDRESSES[i], NAN, 0, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
@@ -48,7 +48,7 @@ void initSensorArray(__uint8_t SensorCount, Sensor sensors[]){
     return;
 }
 
-void setupSensors(__uint8_t SensorCount, Sensor sensors[]){
+void setupSensors(uint8_t SensorCount, Sensor sensors[]){
     /*The following code can be uncommented to discover which sensore are available at the start...
       ...however, if this is done, the sensors that were not discovered at the start will ...
       ...not be retried later in the program should they become available. */
@@ -94,7 +94,7 @@ float readTempSensor(Sensor *s){
     return 0;
 }
 
-__uint8_t readTempSensors(Sensor sensors[]){
+uint8_t readTempSensors(Sensor sensors[]){
     uint8_t sensorsReadSuccessfully = 0;
     for(int i = 0; i<SENSOR_COUNT; i++){
         if(!readTempSensor(&sensors[i])){

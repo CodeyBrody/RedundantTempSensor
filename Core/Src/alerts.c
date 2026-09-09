@@ -40,6 +40,7 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
         setLEDValue(sensors[i].RYG.GREEN, 1);
     }
   }
+  shiftRegWrite(LEDVals);
 }
 
 void setLEDValue(uint8_t LEDNumber, __uint16_t LEDValue){
@@ -49,8 +50,6 @@ void setLEDValue(uint8_t LEDNumber, __uint16_t LEDValue){
   else {
     LEDVals &= ~(1<<LEDNumber);
   }
-  shiftRegWrite(LEDVals);
-
   return;
 }
 

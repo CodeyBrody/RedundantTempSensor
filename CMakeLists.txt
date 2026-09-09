@@ -40,7 +40,8 @@ add_executable(${CMAKE_PROJECT_NAME}
     Core/Src/logging.c
     Core/Src/hardware.c
     Core/Src/rtc.c
-    Core/Src/interrupts.c)
+    Core/Src/interrupts.c
+    Core/Src/stm32.c)
 
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)

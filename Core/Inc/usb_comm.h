@@ -6,7 +6,6 @@
 #include "string.h"
 
 
-extern __uint8_t txBuf[];
 extern UART_HandleTypeDef huart2;
 
 void usb_print(const char *message);

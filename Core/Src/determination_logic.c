@@ -8,7 +8,6 @@
 #include "error_codes.h"
 
 extern UART_HandleTypeDef huart2;
-extern __uint8_t txBuf[];
 
 int determineGreatestOutlier(float average, Sensor sensors[], float devOfTemp[]);
 

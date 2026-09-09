@@ -71,7 +71,7 @@ float readTempSensor(Sensor *s){
     if(ret != HAL_OK){ //If we get anything other than HAL_OK. copy error message to buffer and skip next steps...
       strcpy((char*)txBuf, "Error Tx\r\n");
     } else { //...but if HAL_OKAY was returned, request temp data.
-      HAL_I2C_Master_Receive(&hi2c1, s->address, txBuf, 2, HAL_MAX_DELAY);
+      ret = HAL_I2C_Master_Receive(&hi2c1, s->address, txBuf, 2, HAL_MAX_DELAY);
       if(ret != HAL_OK){ //If error receiving temp data, log a different error and skip next steps..
         strcpy((char*)txBuf, "Error Rx\r\n"); //...replacing potentially garbage data
       } else {/*...then calculate the temperature in Celsius from the returned "temperature value".*/

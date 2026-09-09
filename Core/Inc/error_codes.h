@@ -20,4 +20,8 @@
 /*LED ERRORS*/
 #define NOT_ENOUGH_LEDS 400 //Insufficient LEDs for the number of sensors utilized
 
+/*INTERRUPT ERRORS*/
+#define UNRECOGNIZED_COMMAND_RECEIVED 500 //Unrecognized command received via USART
+#define RTC_FORMATTING_ERROR 501 //The expected data to set RTC, and received data was incorrectly formatted
+
 #endif

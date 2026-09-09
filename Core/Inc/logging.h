@@ -3,14 +3,13 @@
 #include "main.h"
 #include "sensor.h"
 
-extern __uint8_t txBuf[];
 extern UART_HandleTypeDef huart2;
 extern RTC_HandleTypeDef hrtc;
 
 
 void logData(float displayTemp, Sensor sensors[]);
 void logError(int Error, int optionalInt);
-void logCurrentDateTime(__uint8_t txBuf[]);
+void logCurrentDateTime();
 
 // enum messageType {
 //     E, // Error message type

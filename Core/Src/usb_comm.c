@@ -2,16 +2,16 @@
 #include "defines.h"
 #include "math.h"
 
-extern __uint8_t txBuf[];
+uint8_t txBuf[BUFFER_SIZE];
 extern UART_HandleTypeDef huart2;
 
 void print_temp_c(float temp){
     if(isnan(temp)){
-        sprintf((char*)txBuf, "--.--");
+        snprintf((char*)txBuf, BUFFER_SIZE, "--.--");
     }
     else {
         float d_temp = temp*100;
-        sprintf((char*)txBuf,
+        snprintf((char*)txBuf, BUFFER_SIZE,
                     "%u.%02u",
                     ((unsigned int)d_temp / 100),
                     ((unsigned int)d_temp % 100));

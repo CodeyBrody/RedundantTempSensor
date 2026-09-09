@@ -1,4 +1,4 @@
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:15:7:findAverageValidTemp	32	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:33:9:invalidateOutOfBounds	24	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:51:7:determineTemp	56	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:140:5:determineGreatestOutlier	40	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:14:7:findAverageValidTemp	32	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:32:9:invalidateOutOfBounds	24	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:50:7:determineTemp	56	static
+C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/determination_logic.c:139:5:determineGreatestOutlier	40	static

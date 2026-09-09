@@ -4,14 +4,16 @@
 #include "faults.h"
 #include "error_codes.h"
 
-void MISSING_SENSORS_MESSAGE(int Error, int optionalInt);
-void ALL_SENSOR_READS_MISSING_MESSAGE(int Error);
-void SENSOR_READ_MISSING_MESSAGE(int Error, int optionalInt);
-void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int optionalInt);
-void READ_ABOVE_BOUNDS_MESSAGE(int Error, int optionalInt);
-void READ_BELOW_BOUNDS_MESSAGE(int Error, int optionalInt);
-void READ_MARKED_AS_OUTLIER_MESSAGE(int Error, int optionalInt);
-void NOT_ENOUGH_LEDS_MESSAGE(int Error);
+void MISSING_SENSORS_MESSAGE(int optionalInt);
+void ALL_SENSOR_READS_MISSING_MESSAGE();
+void SENSOR_READ_MISSING_MESSAGE(int optionalInt);
+void ALL_READS_MARKED_INVALID_MESSAGE(int optionalInt);
+void READ_ABOVE_BOUNDS_MESSAGE(int optionalInt);
+void READ_BELOW_BOUNDS_MESSAGE(int optionalInt);
+void READ_MARKED_AS_OUTLIER_MESSAGE(int optionalInt);
+void NOT_ENOUGH_LEDS_MESSAGE();
+void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE();
+void RTC_FORMATTING_ERROR_MESSAGE();
 const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]);
 
 void logError(int Error, int optionalInt){
@@ -21,28 +23,34 @@ void logError(int Error, int optionalInt){
 
   switch(Error){
     case MISSING_SENSORS:
-      MISSING_SENSORS_MESSAGE(Error, optionalInt);
+      MISSING_SENSORS_MESSAGE(optionalInt);
       break;
     case ALL_SENSOR_READS_MISSING:
-      ALL_SENSOR_READS_MISSING_MESSAGE(Error);
+      ALL_SENSOR_READS_MISSING_MESSAGE();
       break;
     case SENSOR_READ_MISSING:
-      SENSOR_READ_MISSING_MESSAGE(Error, optionalInt);
+      SENSOR_READ_MISSING_MESSAGE(optionalInt);
       break;
     case ALL_READS_MARKED_INVALID:
-      ALL_READS_MARKED_INVALID_MESSAGE(Error, optionalInt);
+      ALL_READS_MARKED_INVALID_MESSAGE(optionalInt);
       break;
     case READ_ABOVE_BOUNDS:
-      READ_ABOVE_BOUNDS_MESSAGE(Error, optionalInt);
+      READ_ABOVE_BOUNDS_MESSAGE(optionalInt);
       break;
     case READ_BELOW_BOUNDS:
-      READ_BELOW_BOUNDS_MESSAGE(Error, optionalInt);
+      READ_BELOW_BOUNDS_MESSAGE(optionalInt);
       break;
     case READ_MARKED_AS_OUTLIER:
-      READ_MARKED_AS_OUTLIER_MESSAGE(Error, optionalInt);
+      READ_MARKED_AS_OUTLIER_MESSAGE(optionalInt);
       break;
     case NOT_ENOUGH_LEDS:
-      NOT_ENOUGH_LEDS_MESSAGE(Error);
+      NOT_ENOUGH_LEDS_MESSAGE();
+      break;
+    case UNRECOGNIZED_COMMAND_RECEIVED:
+      UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE();
+      break;
+    case RTC_FORMATTING_ERROR:
+      RTC_FORMATTING_ERROR_MESSAGE();
       break;
     default:
       usb_print("Error logged with unrecognized error code.");
@@ -76,7 +84,7 @@ void logData(float displayTemp, Sensor sensors[]){
     return;
 }
 
-void logCurrentDateTime(__uint8_t txBuf[]){
+void logCurrentDateTime(){
   __uint8_t buf[25];
   
     //Create Date and Time Structs to get the store the date and time of different readings
@@ -87,7 +95,7 @@ void logCurrentDateTime(__uint8_t txBuf[]){
   HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
 
 
-  sprintf((char*)buf, "%02d/%02d/%04d %02d:%02d:%02d", 
+  snprintf((char*)buf, sizeof(buf), "%02d/%02d/%04d %02d:%02d:%02d", 
                       d.Month,
                       d.Date,
                       2000+d.Year,
@@ -95,7 +103,7 @@ void logCurrentDateTime(__uint8_t txBuf[]){
                       t.Minutes,
                       t.Seconds);
 
-    HAL_UART_Transmit(&huart2, buf, strlen((char*)buf), HAL_MAX_DELAY);
+    usb_print((const char*)buf);
   return;
 }
 
@@ -123,24 +131,24 @@ const char* fault_stringify(__uint8_t fault_flag, __uint8_t buf[]){
   return (char*)buf;
 }
 
-void MISSING_SENSORS_MESSAGE(int Error, int discoveredSensorCount){
+void MISSING_SENSORS_MESSAGE(int discoveredSensorCount){
   usb_print("Unable to discover the number of sensors expected.");
   usb_print_delimiter(" ");
   usb_printf_int("Proceeding with %u sensors found.", discoveredSensorCount);
   return;
 }
 
-void ALL_SENSOR_READS_MISSING_MESSAGE(int Error){
+void ALL_SENSOR_READS_MISSING_MESSAGE(){
   usb_print("All Sensor Readings Missing.");
   return;
 }
 
-void SENSOR_READ_MISSING_MESSAGE(int Error, int sensorNum){
+void SENSOR_READ_MISSING_MESSAGE(int sensorNum){
   usb_printf_int("Sensor %u Reading Missing.", sensorNum);
   return;
 }
 
-void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int selectedReadSensorNum){
+void ALL_READS_MARKED_INVALID_MESSAGE(int selectedReadSensorNum){
   usb_print("All sensor readings marked as invalid.");
   usb_print_delimiter(" ");
   if(selectedReadSensorNum == -1){ //This is used to indicate that an average temp is being displayed, not any one sensors' values
@@ -151,22 +159,32 @@ void ALL_READS_MARKED_INVALID_MESSAGE(int Error, int selectedReadSensorNum){
   return;
 }
 
-void READ_ABOVE_BOUNDS_MESSAGE(int Error, int sensorNum){
+void READ_ABOVE_BOUNDS_MESSAGE(int sensorNum){
   usb_printf_int("Sensor %u reading marked invalid for being above the documented valid sensor temperature reading range.", sensorNum);
   return;
 }
 
-void READ_BELOW_BOUNDS_MESSAGE(int Error, int sensorNum){
+void READ_BELOW_BOUNDS_MESSAGE(int sensorNum){
   usb_printf_int("Sensor %u reading marked invalid for being below the documented valid sensor temperature reading range.", sensorNum);
   return;
 }
 
-void READ_MARKED_AS_OUTLIER_MESSAGE(int Error, int sensorNum){
+void READ_MARKED_AS_OUTLIER_MESSAGE(int sensorNum){
   usb_printf_int("Sensor %u reading marked invalid as an outlier.", sensorNum);
   return;
 }
 
-void NOT_ENOUGH_LEDS_MESSAGE(int Error){
+void NOT_ENOUGH_LEDS_MESSAGE(){
   usb_print("Insufficient LEDs for the number of sensors utilized.");
+  return;
+}
+
+void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(){
+  usb_print("Unrecognized command received via USART");
+  return;
+}
+
+void RTC_FORMATTING_ERROR_MESSAGE(){
+  usb_print("Expected data to set RTC, but received data incorrectly formatted to do so");
   return;
 }

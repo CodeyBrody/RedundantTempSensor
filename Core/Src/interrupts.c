@@ -1,9 +1,26 @@
 #include "interrupts.h"
+#include "error_codes.h"
+#include "logging.h"
 
-__uint8_t rxBuf[BUFFER_SIZE];  //Create a buffer to receive data over USART
-__uint8_t rxByte; //To hold the next incoming byte
-__uint8_t rxIndex = 0; //To keep track of the index for the next byte in the rxBuf
+uint8_t rxBuf[BUFFER_SIZE];  //Create a buffer to receive data over USART
+uint8_t rxByte; //To hold the next incoming byte
+uint8_t rxIndex = 0; //To keep track of the index for the next byte in the rxBuf
+uint16_t interruptError = 0;
+
 volatile uint8_t setTime = 0; //Used to determine if data to set time is about to be recieved
+
+void interruptFlagHandler(){
+  if (setTime == 1){
+    snprintf((char*)rxBuf, BUFFER_SIZE, "SEND_TIME\r\n");
+    HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), HAL_MAX_DELAY);
+  }
+
+  if (interruptError){
+    logError(interruptError, -1);
+  }
+
+  return;
+}
 
 void setTIMInterrupt(){
     /*Set the timer interrupt to sample the sensor measurements every DELTA seconds*/
@@ -56,15 +73,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
       if(setTime == 1){
         //If the program progresses here, it should have received the time data
-        RTC_SetTime();
+        if(!RTC_SetTime()){ //If the time is not accurately set...
+          interruptError = RTC_FORMATTING_ERROR; //flag an error
+        }
       }
 
       //If "SET_TIME" was received...
       if(strcmp((const char*)rxBuf, "SET_TIME") == 0){
         //Set the boolean variable to set the time on the next pass through
         setTime = 1;
-        sprintf((char*)rxBuf, "SEND_TIME\r\n");
-        HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), HAL_MAX_DELAY);
+      } else {
+        interruptError = UNRECOGNIZED_COMMAND_RECEIVED;
       }
       
       rxIndex = 0;

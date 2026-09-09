@@ -1,5 +1,0 @@
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/interrupts.c:12:6:interruptFlagHandler	8	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/interrupts.c:25:6:setTIMInterrupt	8	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/interrupts.c:32:6:setUSARTInterrupt	16	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/interrupts.c:50:6:HAL_TIM_PeriodElapsedCallback	16	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/interrupts.c:59:6:HAL_UART_RxCpltCallback	16	static

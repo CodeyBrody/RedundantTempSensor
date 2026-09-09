@@ -1,3 +1,0 @@
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/main.c:80:5:main	8	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/main.c:151:6:prepNextSensorRead	8	static
-C:/Users/brody/vscode_STMProjects/RedundantTempSensor/Core/Src/main.c:162:6:Error_Handler	4	static,ignoring_inline_asm

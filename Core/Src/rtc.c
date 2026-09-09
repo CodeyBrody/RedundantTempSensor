@@ -30,7 +30,7 @@ uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
 uint8_t RTC_SetTime(void){
 
   /*Check that the received string is the correct size*/
-  if(strlen(rxBuf) != 18){
+  if(strlen((const char*)rxBuf) != 18){
     return 0;
   }
   

@@ -43,7 +43,7 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT]){
   shiftRegWrite(LEDVals);
 }
 
-void setLEDValue(uint8_t LEDNumber, __uint16_t LEDValue){
+void setLEDValue(uint8_t LEDNumber, uint16_t LEDValue){
   if(LEDValue){
     LEDVals |= (1<<LEDNumber);
   } 
@@ -53,7 +53,7 @@ void setLEDValue(uint8_t LEDNumber, __uint16_t LEDValue){
   return;
 }
 
-void shiftRegWrite(const __uint16_t LEDVals){
+void shiftRegWrite(const uint16_t LEDVals){
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_RESET);
   HAL_SPI_Transmit(&hspi1, (__uint8_t*)&LEDVals, 1, HAL_MAX_DELAY);
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_SET);

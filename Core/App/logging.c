@@ -63,7 +63,7 @@ void logError(int Error, int optionalInt){
       break;
   }
 
-  usb_print("\n\r");
+  usb_print("\r\n");
 
   return;
 }
@@ -86,7 +86,7 @@ void logData(float displayTemp, Sensor sensors[]){
         usb_print(fault_stringify(sensors[i].faults, buf));
     }
 
-    usb_print("\n\r");
+    usb_print("\r\n");
     return;
 }
 

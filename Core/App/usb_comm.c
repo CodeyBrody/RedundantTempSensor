@@ -34,7 +34,7 @@ void usb_println(const char *message_body){
     HAL_UART_Transmit(&huart2, (const uint8_t *)message_body, strlen(message_body), USART_TX_TIMEOUT_MS);
 
     //Send carriage return and newline
-    HAL_UART_Transmit(&huart2, (const uint8_t *)"\n\r", 2, USART_TX_TIMEOUT_MS);
+    HAL_UART_Transmit(&huart2, (const uint8_t *)"\r\n", 2, USART_TX_TIMEOUT_MS);
 
     return;
 }

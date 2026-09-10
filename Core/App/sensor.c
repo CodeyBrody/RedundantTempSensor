@@ -16,14 +16,14 @@ extern uint8_t TMP102_ADDRESSES[SENSOR_COUNT];
 // /*The actually addresses of each sensor being used (stored in order)*/
 uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
-
+uint8_t I2CBuf[2]; //Buffer to send and receive data to/from the sensors via the I2C bus. 
 
 uint8_t discoverSensorArray(uint8_t SensorCount, Sensor sensors[]){
     HAL_StatusTypeDef ret;
     uint8_t discoveredSensorCount = 0;
 
     for(int i = 0; i < SensorCount; i++){
-        ret = HAL_I2C_Master_Transmit(&hi2c1, TMP102_ADDRESSES[i], txBuf, 1, HAL_MAX_DELAY);
+        ret = HAL_I2C_Master_Transmit(&hi2c1, TMP102_ADDRESSES[i], I2CBuf, 1, HAL_MAX_DELAY);
         if(ret != HAL_OK){ //If we get anything other than HAL_OK. copy error message to buffer and skip next steps...
             continue;
         }
@@ -66,18 +66,18 @@ void setupSensors(uint8_t SensorCount, Sensor sensors[]){
 float readTempSensor(Sensor *s){
     HAL_StatusTypeDef ret;
     int16_t sensor_value; 
-    txBuf[0] = TEMP_REGISTER_ADDRESS;
-    ret = HAL_I2C_Master_Transmit(&hi2c1, s->address, txBuf, 1, HAL_MAX_DELAY);
-    if(ret != HAL_OK){ //If we get anything other than HAL_OK. copy error message to buffer and skip next steps...
-      strcpy((char*)txBuf, "Error Tx\r\n");
+    I2CBuf[0] = TEMP_REGISTER_ADDRESS;
+    ret = HAL_I2C_Master_Transmit(&hi2c1, s->address, I2CBuf, 1, HAL_MAX_DELAY);
+    if(ret != HAL_OK){ //If we get anything other than HAL_OK, skip next steps...
+      //IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
     } else { //...but if HAL_OKAY was returned, request temp data.
-      ret = HAL_I2C_Master_Receive(&hi2c1, s->address, txBuf, 2, HAL_MAX_DELAY);
-      if(ret != HAL_OK){ //If error receiving temp data, log a different error and skip next steps..
-        strcpy((char*)txBuf, "Error Rx\r\n"); //...replacing potentially garbage data
+      ret = HAL_I2C_Master_Receive(&hi2c1, s->address, I2CBuf, 2, HAL_MAX_DELAY);
+      if(ret != HAL_OK){ //If error receiving temp data, skip next steps..
+        //IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE 
       } else {/*...then calculate the temperature in Celsius from the returned "temperature value".*/
 
         //Combine the bytes (format 0000|xxxxxxxx|xxxx -> first 8 x's from buf[0], last 4 from buf[1])
-        sensor_value = ((uint16_t)txBuf[0]<<4 | txBuf[1]>>4);
+        sensor_value = ((uint16_t)I2CBuf[0]<<4 | I2CBuf[1]>>4);
 
         //Convert to 2's complement, if the temperature is negative (the first bit is 1)
         if(sensor_value > 0x7FF){
@@ -98,8 +98,6 @@ uint8_t readTempSensors(Sensor sensors[]){
     uint8_t sensorsReadSuccessfully = 0;
     for(int i = 0; i<SENSOR_COUNT; i++){
         if(!readTempSensor(&sensors[i])){
-            /*Can decide if want to print error message currently in txBuf from the readTempSensor function here.*/
-            /*Currently that message (explaining whether the error was in Tx or Rx data) is not printed.*/
             logError(SENSOR_READ_MISSING, i);
         }
         else{

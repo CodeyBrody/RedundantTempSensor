@@ -16,7 +16,6 @@ typedef struct {
     struct RYGLed RYG;
 } Sensor;
 
-extern uint8_t txBuf[];
 extern I2C_HandleTypeDef hi2c1;
 
 void setupSensors(uint8_t SensorCount, Sensor sensors[]);

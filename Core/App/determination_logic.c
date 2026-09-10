@@ -33,11 +33,11 @@ uint8_t invalidateOutOfBounds(Sensor sensors[]){
     uint8_t validCount = 0;
     for(int i = 0; i < SENSOR_COUNT; i++){
         if (sensors[i].currTemp > UPPER_BOUND){
-            sensors[i].faults = ABOVE_BOUNDS;
+            sensors[i].faults |= ABOVE_BOUNDS;
             logError(READ_ABOVE_BOUNDS, i);
         }
         else if(sensors[i].currTemp < LOWER_BOUND){
-            sensors[i].faults = BELOW_BOUNDS;
+            sensors[i].faults |= BELOW_BOUNDS;
             logError(READ_BELOW_BOUNDS, i);
         }
         else if(!sensors[i].faults){

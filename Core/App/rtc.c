@@ -6,7 +6,7 @@
 
 extern uint8_t rxBuf[BUFFER_SIZE];  //A buffer to receive data over USART
 extern RTC_HandleTypeDef hrtc;
-extern volatile uint8_t setTime;
+extern volatile uint8_t receiveTimeData;
 
 uint8_t calculate_time(uint8_t firstDigit, uint8_t secondDigit){
   return (
@@ -30,13 +30,13 @@ uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
 uint8_t RTC_SetTime(void){
 
   /*Check that the received string is the correct size*/
-  if(strlen((const char*)rxBuf) != 18){
+  if(strlen((const char*)rxBuf) != 19){
     return 0;
   }
   
   /*Check to make sure all the numbers intended to be digits are digits*/
   for(int i = 2; i < 18; i++){
-    if((i % 3) == 1){
+    if((i % 3) != 1){
       if(!isdigit(rxBuf[i])){
         return 0;
       }
@@ -94,13 +94,11 @@ uint8_t RTC_SetTime(void){
 
   HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
   HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
-  setTime = 0;
   
   return 1;
 }
 
 void RTC_RequestTime(void){
-    setTime = 1;
+    receiveTimeData = 1;
     usb_println("SEND_TIME");
 }

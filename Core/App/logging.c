@@ -4,6 +4,8 @@
 #include "faults.h"
 #include "error_codes.h"
 
+uint8_t buf[5]; //Buffer to hold fault strings for the different temp sensor readings
+
 void MISSING_SENSORS_MESSAGE(int optionalInt);
 void ALL_SENSOR_READS_MISSING_MESSAGE();
 void SENSOR_READ_MISSING_MESSAGE(int optionalInt);
@@ -18,7 +20,7 @@ const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
 void logError(int Error, int optionalInt){
   usb_print("E: ");
-  logCurrentDateTime(txBuf);
+  logCurrentDateTime();
   usb_print_delimiter(" ");
 
   switch(Error){
@@ -65,7 +67,7 @@ void logError(int Error, int optionalInt){
 void logData(float displayTemp, Sensor sensors[]){
     usb_print("D: ");
 
-    logCurrentDateTime(txBuf);
+    logCurrentDateTime();
     usb_print_delimiter(", ");
 
     print_temp_c(displayTemp); 
@@ -77,7 +79,7 @@ void logData(float displayTemp, Sensor sensors[]){
 
     for(int i = 0; i<SENSOR_COUNT; i++){
         usb_print_delimiter(", ");
-        usb_print(fault_stringify(sensors[i].faults, txBuf));
+        usb_print(fault_stringify(sensors[i].faults, buf));
     }
 
     usb_print("\n\r");

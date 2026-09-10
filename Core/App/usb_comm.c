@@ -16,34 +16,30 @@ void print_temp_c(float temp){
                     ((unsigned int)d_temp / 100),
                     ((unsigned int)d_temp % 100));
     }
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), USART_TX_MAX_DELAY);
 }
 
 void usb_print(const char *message_body){
     //Send the message body
-    strcpy((char*)txBuf, message_body);
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t *)message_body, strlen(message_body), USART_TX_MAX_DELAY);
     return;
 }
 
 void usb_print_delimiter(const char *delimiter){
-    strcpy((char*)txBuf, delimiter);
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (const uint8_t *)delimiter, strlen(delimiter), USART_TX_MAX_DELAY);
 }
 
 void usb_println(const char *message_body){
     //Send the message body
-    strcpy((char*)txBuf, message_body);
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (const uint8_t *)message_body, strlen(message_body), USART_TX_MAX_DELAY);
 
     //Send carriage return and newline
-    strcpy((char*)txBuf, "\n\r");
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (const uint8_t *)"\n\r", 2, USART_TX_MAX_DELAY);
 
     return;
 }
 
 void usb_printf_int(const char *message, int arg){
     snprintf((char*)txBuf, BUFFER_SIZE, message, arg);
-    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, txBuf, strlen((char*)txBuf), USART_TX_MAX_DELAY);
 }

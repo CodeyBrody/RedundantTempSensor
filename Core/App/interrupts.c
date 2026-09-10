@@ -1,6 +1,7 @@
 #include "interrupts.h"
 #include "error_codes.h"
 #include "logging.h"
+#include "usb_comm.h"
 
 uint8_t rxBuf[BUFFER_SIZE];  //Create a buffer to receive data over USART
 uint8_t rxByte; //To hold the next incoming byte
@@ -14,21 +15,24 @@ uint8_t sendTimeMessage = 0; //Used to determine whether or not to send 'SEND_TI
 void interruptFlagHandler(){
   if (receiveTimeData && sendTimeMessage){
     snprintf((char*)rxBuf, BUFFER_SIZE, "SEND_TIME\r\n");
-    HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), USART_TX_MAX_DELAY);
     sendTimeMessage = 0;
   }
 
   if(setTime){
     if(!RTC_SetTime()){ //If the time is not accurately set...
       interruptError = RTC_FORMATTING_ERROR; //flag an error
-      setTime = 0;
       sendTimeMessage = 1;
       receiveTimeData = 1;
     }
+    setTime = 0;
   }
 
   if (interruptError){
     logError(interruptError, -1);
+    /*THE FOLLOWING MAKES SENSE because the all interrupt errors currently extant would benefit from it*/
+    usb_print("Received: ");
+    usb_print((const char*)rxBuf);
   }
 
   return;

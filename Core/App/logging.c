@@ -16,6 +16,7 @@ void READ_MARKED_AS_OUTLIER_MESSAGE(int optionalInt);
 void NOT_ENOUGH_LEDS_MESSAGE();
 void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE();
 void RTC_FORMATTING_ERROR_MESSAGE();
+void RTC_SET_ERROR_MESSAGE();
 const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
 void logError(int Error, int optionalInt){
@@ -54,6 +55,9 @@ void logError(int Error, int optionalInt){
     case RTC_FORMATTING_ERROR:
       RTC_FORMATTING_ERROR_MESSAGE();
       break;
+    case RTC_SET_ERROR:
+      RTC_SET_ERROR_MESSAGE();
+      break;
     default:
       usb_print("Error logged with unrecognized error code.");
       break;
@@ -86,7 +90,7 @@ void logData(float displayTemp, Sensor sensors[]){
     return;
 }
 
-void logCurrentDateTime(){
+void logCurrentDateTime(void){
   uint8_t buf[25];
   
     //Create Date and Time Structs to get the store the date and time of different readings
@@ -188,5 +192,10 @@ void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(){
 
 void RTC_FORMATTING_ERROR_MESSAGE(){
   usb_print("Expected data to set RTC, but received data incorrectly formatted to do so");
+  return;
+}
+
+void RTC_SET_ERROR_MESSAGE(){
+  usb_print("An error occured while attempting to set the parsed RTC time or date");
   return;
 }

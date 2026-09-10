@@ -15,13 +15,21 @@ uint8_t sendTimeMessage = 0; //Used to determine whether or not to send 'SEND_TI
 void interruptFlagHandler(){
   if (receiveTimeData && sendTimeMessage){
     snprintf((char*)rxBuf, BUFFER_SIZE, "SEND_TIME\r\n");
-    HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), USART_TX_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, rxBuf, strlen((char*)rxBuf), USART_TX_TIMEOUT_MS);
     sendTimeMessage = 0;
   }
 
   if(setTime){
-    if(!RTC_SetTime()){ //If the time is not accurately set...
-      interruptError = RTC_FORMATTING_ERROR; //flag an error
+    uint8_t returnCode = RTC_SetTime();
+    if(returnCode){ //If the time is not accurately set...
+      switch (returnCode){
+        case 1: interruptError = RTC_FORMATTING_ERROR; //flag an error
+                break;
+        case 2: interruptError = RTC_SET_ERROR;
+                break;
+        default:
+                break;
+      }
       sendTimeMessage = 1;
       receiveTimeData = 1;
     }
@@ -33,6 +41,7 @@ void interruptFlagHandler(){
     /*THE FOLLOWING MAKES SENSE because the all interrupt errors currently extant would benefit from it*/
     usb_print("Received: ");
     usb_print((const char*)rxBuf);
+    interruptError = 0;
   }
 
   return;
@@ -87,16 +96,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
       //Process the received transmission information
 
+      /*CAN ADD FUTURE USART COMMANDS TO BE PROCESSED TO THIS CHAINED IF-ELSE BLOCK*/
       if(receiveTimeData == 1){
         //If the program progresses here, it should have received the time data
         //reset the 'receiveTimeData' variable and set 'setTime', to attempt to set the RTC with the received data
         receiveTimeData = 0;
         setTime = 1;
-      }
-
-      /*CAN ADD FUTURE USART COMMANDS TO BE PROCESSED TO THIS CHAINED IF-ELSE BLOCK*/
-      //If "SET_TIME" was received...
-      if(strcmp((const char*)rxBuf, "SET_TIME") == 0){
+      } else if(strcmp((const char*)rxBuf, "SET_TIME") == 0){ //If "SET_TIME" was received...
         //Set the boolean variable to set the time on the next pass through
         receiveTimeData = 1;
         sendTimeMessage = 1;

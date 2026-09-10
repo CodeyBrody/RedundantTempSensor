@@ -27,18 +27,19 @@ uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
   return ((sDate.Year + sDate.Year/4 - sDate.Year/100 + sDate.Year/400 + t[sDate.Month-1]+sDate.Date) % 7);
 }
 
+/*A function to set the RTC time. Returns 0 on success, 1 for formatted string errors, 2 for errors attempting HAL_SET time or date*/
 uint8_t RTC_SetTime(void){
 
   /*Check that the received string is the correct size*/
   if(strlen((const char*)rxBuf) != 19){
-    return 0;
+    return 1;
   }
   
   /*Check to make sure all the numbers intended to be digits are digits*/
-  for(int i = 2; i < 18; i++){
+  for(int i = 2; i < 19; i++){
     if((i % 3) != 1){
       if(!isdigit(rxBuf[i])){
-        return 0;
+        return 1;
       }
     }
   }
@@ -53,7 +54,7 @@ uint8_t RTC_SetTime(void){
   calculated_entry = calculate_time(5, 6);
   
   if(!(calculated_entry <= 12 && calculated_entry >= 1)){
-    return 0;
+    return 1;
   } else {
     sDate.Month = calculated_entry;
   }
@@ -61,7 +62,7 @@ uint8_t RTC_SetTime(void){
     calculated_entry = calculate_time(8, 9);
   
   if(!(calculated_entry <= 31 && calculated_entry >= 1)){
-    return 0;
+    return 1;
   } else {
     sDate.Date = calculated_entry;
   }
@@ -71,7 +72,7 @@ uint8_t RTC_SetTime(void){
   calculated_entry = calculate_time(11, 12);
 
   if(!(calculated_entry <= 23 && calculated_entry >= 0)){
-    return 0;
+    return 1;
   } else {
     sTime.Hours = calculated_entry;
   }
@@ -79,7 +80,7 @@ uint8_t RTC_SetTime(void){
   calculated_entry = calculate_time(14, 15);
 
   if(!(calculated_entry <= 59 && calculated_entry >= 0)){
-    return 0;
+    return 1;
   } else {
     sTime.Minutes = calculated_entry;
   }
@@ -87,15 +88,21 @@ uint8_t RTC_SetTime(void){
   calculated_entry = calculate_time(17, 18);
 
   if(!(calculated_entry <= 59 && calculated_entry >= 0)){
-    return 0;
+    return 1;
   } else {
     sTime.Seconds = calculated_entry;
   }
 
-  HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-  HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-  
-  return 1;
+  HAL_StatusTypeDef ret = HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+  if(ret != HAL_OK){
+    return 2;
+  }
+  ret = HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+  if(ret != HAL_OK){
+    return 2;
+  }
+
+  return 0;
 }
 
 void RTC_RequestTime(void){

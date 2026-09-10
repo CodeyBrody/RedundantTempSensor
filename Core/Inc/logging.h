@@ -9,6 +9,6 @@ extern RTC_HandleTypeDef hrtc;
 
 void logData(float displayTemp, Sensor sensors[]);
 void logError(int Error, int optionalInt);
-void logCurrentDateTime();
+void logCurrentDateTime(void);
 
 #endif /*LOGGING_H*/

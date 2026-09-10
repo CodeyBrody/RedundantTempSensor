@@ -55,7 +55,7 @@ void setLEDValue(uint8_t LEDNumber, uint16_t LEDValue){
 
 void shiftRegWrite(const uint16_t LEDVals){
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_RESET);
-  HAL_SPI_Transmit(&hspi1, (__uint8_t*)&LEDVals, 1, SPI_MAX_DELAY);
+  HAL_SPI_Transmit(&hspi1, (uint8_t*)&LEDVals, 1, SPI_TIMEOUT_MS);
   HAL_GPIO_WritePin(LATCH_GPIO_PORT, LATCH_PIN, GPIO_PIN_SET);
 }
 

@@ -1,50 +1,56 @@
 # Redundant Temperature Sensor System
 
+A fault-tolerant temperature monitoring system built around an STM32-L476RG microcontroller and three redundant TMP102 temperature sensors.
+
+The system periodically reads the sensors, evaluates the measurements for communication failures, out-of-range values, and disagreement between redundant measurements, and determines a final temperature value from the available valid readings.
+
+Sensor status is communicated through LEDs and an active buzzer, while timestamped temperature and fault information is transmitted to a host computer over USART.
+
+---
+
 ## Overview
 
-This project includes code for a redundant temperature sensor system to be run on an STM32-L476RG microcontroller.
+This project includes code for **a redundant temperature sensor system** to be run on an STM32-L476RG microcontroller.
 
 This system:
-- reads multiple temperature sensors (3 by default) at regular intervals,
-- determines which temperature sensor measurement readings are to be considered invalid based on factors such as:
-  - whether a measurement deviates significantly from the other measurements received, or
-  - whether a measurement is outside of (above or below) the temperature sensor's specified operating range, and
-- based on that determination, determines a final "display temperature" value, which is sent (along with other information) to a computer connected to the microcontroller.
-  
-The program includes code to:
-- Set LEDs associated with each sensor to indicate the status of the temperature reading associated with that sensor (e.g. reading marked Valid, Invalid, or Missing)
-- Operate a buzzer that sounds when a sensor's readings transition to being marked as invalid or sensor readings become unavailable from a particular sensor.
+* Periodically samples multiple temperature sensors over a shared I²C bus, utilizing a timer interrupt,
+* Detects sensor communication failures.
+* Detects temperature measurements outside the sensor's specified operating range.
+* Identifies measurements that deviate significantly from the other measurements received.
+* Uses the results from the above analyses to determine a final display temperature.
+* Drives status LEDs through a pair of 74HC595 shift registers.
+* Activates an audible buzzer when sensor measurements are first flagged or go missing.
+* Maintains a real-time clock (RTC) for timestamping measurements and errors.
+* Communicates timestamped measurements and fault information to a host computer over USART.
+
+The project is intended as a demonstration of embedded C programming, peripheral communication, and redundant-sensor decision logic.
+
+---
 
 ## Topics/Technologies Involved
 
-- Multiple (redundant) TMP102 temperature sensors
-- I2C communication
-- SPI communication
-- UART communication
-- RTC timestamping
-- Timer interrupt handling
-- USART interrupt handling
+* Embedded C
+* STM32L4 microcontrollers
+* STM32 HAL
+* TMP102 temperature sensors
+* I²C communication
+* SPI communication
+* USART communication
+* RTC timestamping
+* Timer interrupts
+* USART receive interrupts
+* Fault detection
+* Redundant sensor processing
+* CMake
+* Ninja
+* ARM GNU Toolchain
+* Visual Studio Code
+* Cortex-Debug
+* ST-LINK
 
-## Hardware
+--- 
 
-- STM32 Nucleo-L476RG
-- TMP102 Temperature Sensors
-- 74HC595 IC Shift Register(s)
-- USB -> micro-USB cable
-- Active Buzzer
-- 220Ω Resistors
-- LEDs
-  
-## Software
-
-- C
-- STM32 HAL
-- ARM GNU Toolchain
-- CMake
-- Ninja
-- VS Code
-
-## Architecture
+## System Architecture
 
 > **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accommodate a variable number of temperature sensors, the default settings and code of the software overall expect 3 temperature sensors. This setup is used in the diagrams and explanations that follow.
 > The astute engineer can discern how to modify the hardware (and what software constants and lines of code may need to be changed) to use the software with other numbers of sensors. 
@@ -57,16 +63,254 @@ The following diagram visualizes connections between different physical componen
 
 ![A diagram showing the types of connections between different hardware components of the system, and purposes/jobs of different components in the system.](images/RTSHardwareArchDiagram.png "Hardware Architecture Diagram")
 
+---
+
+## Hardware
+
+### Main Components
+* STM32 Nucleo-L476RG
+* 3 × TMP102 temperature sensors
+* 74HC595 shift register(s)
+* Active buzzer
+* Red, yellow, and green LEDs
+* 220 Ω resistors
+* USB / micro-USB connection to host computer
+
+### Sensor Configuration
+
+The default firmware configuration expects three TMP102 sensors using the following I²C addresses:
+
+| Sensor   | TMP102 Address |
+| -------- | -------------: |
+| Sensor 1 |         `0x48` |
+| Sensor 2 |         `0x49` |
+| Sensor 3 |         `0x4A` |
+
+The sensors share the same I²C bus.
+
+The firmware's redundancy logic is designed to work with a sensor array, although the overall application and hardware configuration currently expect three sensors.
+
+### Status LEDs
+
+Each sensor has a red, yellow, and green status LED.
+
+The current implementation uses the LEDs to indicate the sensor's state:
+
+| Sensor condition                        | LED indication |
+| --------------------------------------- | -------------- |
+| Valid reading                           | Green          |
+| Invalid / flagged reading               | Yellow         |
+| Communication failure / missing reading | Red            |
+
+The LEDs are controlled through a 74HC595 shift register using SPI.
+
+### Buzzer
+
+An active buzzer is used to provide an audible indication when sensor conditions change.
+
+A short beep is generated when a sensor becomes newly faulty. If all sensors become unavailable, the buzzer enters a continuous/extended alert state.
+
+---
+
+## Software Architecture
+
+The firmware is divided into application modules under `Core/App/`, with the main.c file (initially generated by CubeMX, but edited by the author of this project) under `Core/Src/`, along with other STM generated or included .c files.
+
+```text
+Core/
+├── App/
+│   ├── alerts.c
+│   ├── determination_logic.c
+│   ├── hardware.c
+│   ├── interrupts.c
+│   ├── logging.c
+│   ├── rtc.c
+│   ├── sensor.c
+│   └── usb_comm.c
+│
+├── Inc/
+│   ├── alerts.h
+│   ├── defines.h
+│   ├── determination_logic.h
+│   ├── error_codes.h
+│   ├── faults.h
+│   ├── hardware.h
+│   ├── interrupts.h
+│   ├── logging.h
+│   ├── rtc.h
+│   ├── sensor.h
+│   └── usb_comm.h
+│   └── STM32/CubeMX-generated / included header files
+│
+└── Src/
+    └── STM32/CubeMX-generated source
+```
+
+### High-Level Data Flow
+
+```text
+       TMP102 Sensors
+       Sensor 1  ─┐
+       Sensor 2  ─┼── I²C ──► Sensor Readings
+       Sensor 3  ─┘                │
+                                   ▼
+                           Fault Detection
+                                   │
+                                   ▼
+                         Redundancy Logic
+                                   │
+                    ┌──────────────┼──────────────┐
+                    ▼              ▼              ▼
+              Display Temp       LEDs          Buzzer
+                    │
+                    ▼
+             Timestamp + Data
+                    │
+                    ▼
+              USART / USB
+                    │
+                    ▼
+             Host Computer
+```
+
+### Main-Loop / Interrupt Architecture
+
+The timer and USART peripherals use interrupts, but substantial processing is intentionally performed outside the interrupt service routines.
+
+The general execution model is:
+
+```text
+Timer Interrupt
+      │
+      ▼
+Set readNow flag
+      │
+      ▼
+Main Loop
+      │
+      ├── Read sensors
+      ├── Flag questionable / missing readings
+      ├── Determine display temperature
+      ├── Log data
+      ├── Update LEDs / buzzer
+      └── Prep for next sensor read
+```
+
+The main loop is also set to, on each iteration through the loop, check and handle flags set or errors logged during execution of interrupt code, as well as to check the state of the buzzer (a non-blocking way to turn off the buzzer after a certain amount of time has elapsed).
+
+USART reception follows a similar pattern:
+
+```text
+USART Receive Interrupt
+      │
+      ▼
+Receive bytes into buffer
+      │
+      ▼
+Message terminator received
+      │
+      ▼
+Set flags/errors based on message received
+      │
+      ▼
+Main Loop
+      │
+      └── Check for and/or handle flags set or errors logged
+```
+
+This keeps relatively time-consuming operations such as sensor communication, logging, and received RTC data processing out of interrupt callbacks.
+
+---
+
+## Sensor Redundancy and Fault Detection
+
+Each sensor is represented by a `Sensor` structure containing its I²C address, current temperature, fault flags, the previous reading's fault flags, and associated LED assignments.
+
+The firmware evaluates sensor readings in several stages.
+
+### 1. Communication Check
+
+If an I²C transaction fails, the sensor is marked with a communication fault:
+
+```text
+COMM_FAULT
+```
+
+Its current temperature is treated as unavailable.
+
+### 2. Outlier Detection
+
+Existing sensor readings are compared against one another.
+
+If a reading differs from the current average by at least the configured disagreement threshold, it is marked as an outlier:
+
+```text
+IS_OUTLIER
+```
+
+The average is then recalculated using the remaining valid readings.
+
+This process continues until the remaining readings no longer disagree beyond the configured threshold.
+
+### 3. Temperature Bounds
+
+After outlier processing, readings are checked against the configured upper and lower temperature bounds (by default set to the manufacturer's specified operating range for the sensors).
+
+Measurements outside those limits are marked with:
+
+```text
+ABOVE_BOUNDS
+```
+and
+
+```text
+BELOW_BOUNDS
+```
+respectively.
+
+### 4. Final Temperature
+
+In light of the results of the aforementioned analyses, a final display temperature is determined.
+
+Depending on the available sensor readings, the firmware may:
+
+* Average multiple valid sensors.
+* Use the only remaining valid sensor (if only one sensor reading remains valid).
+* Choose the reading from one sensor to display when all readings disagree, or choose an average of a number of readings when all readings have been flagged.
+* Return `NAN` when no usable readings are available.
+
+The exact determination logic is implemented in `determination_logic.c`.
+
+---
+
+## Fault Flags
+
+Sensor faults are represented as a bitmask, allowing multiple fault conditions to be associated with the same sensor.
+
+| Flag           | Meaning                                                           |
+| -------------- | ----------------------------------------------------------------- |
+| `COMM_FAULT`   | Communication with the sensor failed                              |
+| `ABOVE_BOUNDS` | Temperature reading exceeded the configured upper bound           |
+| `BELOW_BOUNDS` | Temperature reading below the configured lower bound              |
+| `IS_OUTLIER`   | Reading was rejected because it disagreed with the other readings |
+
+Because these are bit flags, multiple faults can be simultaneously associated with one sensor (e.g. a reading can be both above bounds and an outlier). 
+
+---
+
 ## Communication Protocol
 
-The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200.
+The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200. The STM32's USART connection is exposed to the host computer through the Nucleo board's USB connection.
 
 Messages can be sent either to or from the microcontroller, although the only task intended to be done through sending data to the microcontroller is setting the RTC (see later in this section).
 
 ### Communication From the Microcontroller
 
-Messages sent from the microcontroller to a host computer connected via USART are structured with a header and a message body, and are terminated with a 
-carriage return and newline (`\r\n`). 
+Messages sent from the microcontroller to a host computer via USART use the following general structure:
+
+```text
+<header><message body>\r\n
+```
 
 The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types: 
 - Data (`D: `)
@@ -74,34 +318,109 @@ The **header** consists of a letter identifying the type of message being transm
 
 #### Data Messages
 
-The message bodies of data messages include the following information, separated by commas:
+Data messages begin with:
+
+```text
+D:
+```
+
+The message contains:
+
+```text
+D: timestamp, display temperature, sensor 1 temperature, sensor 2 temperature, sensor 3 temperature, sensor 1 faults, sensor 2 faults, sensor 3 faults
+```
+
+Example:
+
+```text
+D: 09/10/2026 10:42:18, 24.75, 24.75, 24.69, 24.81, , , 
+```
+
+A missing temperature is represented by:
+
+```text
+--.--
+```
+
+A description of the different peices of information follows:
 - Timestamp - The timestamp for the specific batch of data
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
 - Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--")
-- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, with each string of faults (one for each sensor) separated by a comma, translated as follows:
-  - ' -> Reading missing
-  - \* -> Reading marked as an outlier.
-  - ^ -> Reading above specified sensor operating range
-  - v -> Reading below specified sensor operating range
-The message body is not terminated by a comma, but by a carriage return and newline.
+- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading.
+
+#### Fault Symbols
+
+Sensor fault strings use the following symbols:
+
+| Symbol  | Meaning                               |
+| ------- | ------------------------------------- |
+| `` ` `` | Communication / missing-reading fault |
+| `*`     | Outlier                               |
+| `-`     | Below configured temperature range    |
+| `+`     | Above configured temperature range    |
+
+Multiple symbols can appear together when a sensor has multiple fault flags. Or, a string of fault flags can be simply an empty string if no flags have been marked for that sensor reading.
 
 #### Error Messages
 
-Error messages begin with the error message header, followed by a message describing the error or situation that occurred that led to the sending of the message. They are also terminated by carriage return and newline characters.
+Error messages begin with the error message header:
+
+```text
+E:
+```
+
+and include a timestamp followed by a message describing the error or situation that occurred that led to the sending of the message. Some exapmples include:
+
+```text
+E: 09/10/2026 10:42:18 Sensor 1 Reading Missing.
+```
+
+```text
+E: 09/10/2026 10:42:20 Sensor 2 reading marked invalid as an outlier.
+```
+
+```text
+E: 09/10/2026 10:42:22 All Sensor Readings Missing.
+```
+
+ They are also terminated by carriage return and newline characters.
 
 ### Communication to the Microcontroller
 
-Communicating information via USART to the microcontroller triggers an interrupt, which receives data from the USART connection and places it into a buffer until a `\n` or `\r` is encountered, or until one less byte than the set size of the receiving buffer (by default 100 characters) is received (whichever comes first). 
+The only current command the firmware has been set up to handle via USART is setting the microcontroller's RTC, the process of which is explained below.
 
-The only current task the firmware has been set up to handle via being communicated to by USB is setting the microcontroller's RTC, the process of which is explained below.
+#### Initial Setting of the RTC Via USART Communication
 
-#### Setting the RTC Via USART Communication
+The microcontroller will send a "`SEND_TIME\r\n`" message before entering normal operation. After this message is sent, the next received message is interpreted as the date/time value. The expected format is:
 
-The microcontroller will send a "`SEND_TIME\r\n`" message before entering normal operation. After this message is sent, the next data received will be treated as the date, in the format "`YYYY/mm/dd HH:MM:SS`", using the 24 hour format. This complete date and time data should be terminated by a carriage return and/or a newline character. Once that string is received, including the terminating carriage return and/or a newline character, that data will automatically be used to set the RTC. 
+```text
+YYYY/mm/dd HH:MM:SS
+```
 
-The time may still be set after the first exchange of data if necessary (such as if an error occured, or the first data sent to the microcontroller isn't the time data in the correct string format). 
+using 24-hour time.
 
-When receiving later data via USART, if a `\n` or `\r` is encountered, the message is compared to the string "`SET_TIME`". If the string does not match that message, the buffer is reset. Otherwise (if `SET_TIME` _was_ received), the microcontroller sends the message "`SEND_TIME\r\n`", and the next data received will be treated as the date, in the same format as described above. Once that date is received, that data will automatically be used to set the RTC.
+Example:
+
+```text
+2026/09/10 10:45:30
+```
+
+This complete date and time data should be terminated by a carriage return and/or a newline character. 
+
+After receiving the date/time value, the firmware uses it to configure the STM32 RTC. If the supplied value is incorrectly formatted, the firmware reports an RTC formatting error and requests the time again.
+
+#### Resetting the RTC
+
+The time may still be set after the first exchange of data if necessary. 
+
+If the microcontroller received the command:
+
+```text
+SET_TIME\r\n
+```
+then the next data received will be treated as the date, in the same format as described above. Once that date is received, that data will automatically be used to set the RTC. Again, if the supplied value is incorrectly formatted, the firmware will report an RTC formatting error and request the time again.
+
+---
 
 ## Build Instructions
 
@@ -181,7 +500,7 @@ build/
 └── Release/
 ```
 
-The `build/` directory contains generated files and is excluded from version control.
+The generated build directory is excluded from version control.
 
 ## Flashing and Debugging
 
@@ -201,10 +520,6 @@ The project uses the **ST-LINK** programmer/debugger integrated into the **STM32
 
 Cortex-Debug will program the Debug ELF through ST-LINK and start a debugging session.
 
-```text
-build/Debug/RedundantTempSensor.elf
-```
-
 ### Release Build
 
 1. Build the **Release** configuration.
@@ -220,17 +535,82 @@ build/Release/RedundantTempSensor.elf
 
 > **Note:** The Release build is optimized for size and does not include debugging information, so source-level debugging is limited compared with the Debug build.
 
+## Project Configuration
+
+Several application-level constants are defined in:
+
+```text
+Core/Inc/defines.h
+```
+
+For example:
+
+```c
+#define DELTA 2
+#define DISAGREE_THRESHOLD 2.0
+#define BUFFER_SIZE 100
+```
+
+`DELTA` controls the desired interval between sensor-reading cycles.
+
+The default application configuration expects:
+
+```text
+3 sensors
+```
+
+and three sets of RGB status LEDs.
+
+---
+
 ## Known Limitations
 
-This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While
-  messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure it's RTC.
+### Fixed Hardware Configuration
 
-  To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
+Although portions of the sensor-processing logic operate on a sensor array, the current overall code is configured specifically for three TMP102 sensors.
 
-  If you would like to create your own, feel free to take a look at the **Communication Protocol** section above to see how data communicated over USART is structured.
+Changing the number of sensors may require corresponding changes to the hardware and code.
+
+### Host Computer Software
+
+This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure it's RTC.
+
+To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
+
+If you would like to create your own, feel free to take a look at the **Communication Protocol** section above to see how data communicated over USART is structured.
+
+### Timing
+
+Sensor sampling is initiated by a timer interrupt and processed by the main loop. The configured interval represents the desired interval between reading cycles rather than a guarantee that every cycle will begin at an exact wall-clock time.
+
+### Validation and Testing
+
+While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware either (see the License section below for more information).
+
+Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for any use by anyone. Contact the [@CodeyBrody](https://github.com/CodeyBrody) with questions.
+
+---
+
+## Future Improvements
+
+Potential future development opportunities include:
+
+* Documented unit and system tests
+* Making it easier/more straightforward to change the code to use other than three sensors. 
+* More comprehensive RTC input validation.
+* Additional USART commands.
+* Factor additional clues of suspicious readings (e.g. a huge rate of change) into determination logic.
+
+---
 
 ## License
 
 This repository contains original application code as well as software components generated or provided by STMicroelectronics and other third parties.
 
-Original application code is provided by the author. Vendor-provided and third-party components retain their respective copyrights and license terms. See the applicable license files and copyright notices included with those components.
+Original code is provided by the author. Vendor-provided and third-party components retain their respective copyrights and license terms.
+
+See the applicable license files and copyright notices included with those components.
+
+At this time, no single license is intended to supersede the individual licenses applicable to vendor-provided or third-party components.
+
+> NOTE: Parts of this README.md file were created using ChatGPT, mixed with content from and edited by @CodeyBrody. Parts of this README.md may be incorrect or incomplete, or may become outdated. If you discover any such issues, feel free to open a pull request, or contact the owner of this repository. (Who, although this is written in the third person, did indeed write this himself.)

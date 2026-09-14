@@ -166,12 +166,12 @@ void ALL_READS_MARKED_INVALID_MESSAGE(int selectedReadSensorNum){
 }
 
 void READ_ABOVE_BOUNDS_MESSAGE(int sensorNum){
-  usb_printf_int("Sensor %u reading marked invalid for being above the documented valid sensor temperature reading range.", sensorNum);
+  usb_printf_int("Sensor %u reading marked invalid for being above the specified sensor operating range.", sensorNum);
   return;
 }
 
 void READ_BELOW_BOUNDS_MESSAGE(int sensorNum){
-  usb_printf_int("Sensor %u reading marked invalid for being below the documented valid sensor temperature reading range.", sensorNum);
+  usb_printf_int("Sensor %u reading marked invalid for being below the specified sensor operating range.", sensorNum);
   return;
 }
 

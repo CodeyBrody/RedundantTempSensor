@@ -70,7 +70,7 @@ float determineTemp(Sensor sensors[]){
     }
 
     /*if no valid measurements, display an error, and keep displayTemp as NAN...*/
-    if(validIndex == -1){
+    if(validCount == 0){
         logError(ALL_SENSOR_READS_MISSING, -1);
         return display_temperature;
     }
@@ -86,6 +86,12 @@ float determineTemp(Sensor sensors[]){
     average = tally/validCount;
 
     uint8_t biggestIndex = 0; //Stores the index of the sensor with the highest variation from the average
+    uint8_t orderInvalidated[validCount]; //Stores the indices of the sensors invalidated, with the most recently invalidated earlier in the list (all other entries = -1)
+    //Initialize the above array:
+    for(int i = 0; i < validCount; i++){
+        orderInvalidated[i] = -1;
+    }
+
     while(!allValid){
         allValid = 1;
         biggestIndex = determineGreatestOutlier(average, sensors, devOfTemp);
@@ -99,6 +105,7 @@ float determineTemp(Sensor sensors[]){
             sensors[biggestIndex].faults |= IS_OUTLIER;
             logError(READ_MARKED_AS_OUTLIER, biggestIndex);
             validCount--;
+            orderInvalidated[validCount] = biggestIndex;
             /*If there is only one reading left standing, after the second to last one was marked an 'outlier'...*/
             if((validCount == 1) && (SENSOR_COUNT > 1)){
                 /*All of the temperature readings are "outliers" of each other...*/
@@ -109,14 +116,26 @@ float determineTemp(Sensor sensors[]){
                 }
                 /*...and mark it as also an invalid outlier*/
                 sensors[biggestIndex].faults = (sensors[biggestIndex].faults | IS_OUTLIER);
+                /*Store it as the last value 'invalidated' as an outlier...*/
+                orderInvalidated[0] = biggestIndex;
                 /*Print a final error message...*/
                 logError(READ_MARKED_AS_OUTLIER, biggestIndex);
                 /*...including an EXTRA one declaring that all sensor readings were marked invalid*/
                 logError(ALL_READS_MARKED_INVALID, biggestIndex);
-                /*DESIGN CHOICE...display (as the display temperature) the last value "invalidated"*/
-                display_temperature = sensors[biggestIndex].currTemp;
                 /*Mark all OOB (Out of Bounds) readings*/
                 invalidateOutOfBounds(sensors);
+                /*DESIGN CHOICE...display (as the display temperature) the last value "invalidated" that is within bounds..."*/
+                for(int i = 0; i < sizeof(orderInvalidated); i++){
+                    if((sensors[orderInvalidated[i]].faults & ABOVE_BOUNDS || sensors[orderInvalidated[i]].faults & ABOVE_BOUNDS)){
+                        continue;
+                    } else {
+                        display_temperature = sensors[orderInvalidated[i]].currTemp;
+                        return display_temperature;
+                    }
+                }
+
+                /*If all of the communicating sensor measurements are either above or below the specified operating range, return the last one 'invalidated'*/
+                display_temperature = sensors[biggestIndex].currTemp;
                 return display_temperature;
             }
             allValid = 0;

@@ -146,8 +146,8 @@ int main(void)
       setAlerts(sensors);
       prepNextSensorRead();
     }
-    interruptFlagHandler();
     usartMessageHandler();
+    interruptFlagHandler();
     updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be on
     /* USER CODE END WHILE */
 

@@ -3,6 +3,8 @@
 #include "faults.h"
 #include "usb_comm.h"
 #include "error_codes.h"
+#include "stdlib.h"
+#include "stdio.h"
 
 uint8_t buf[5]; //Buffer to hold fault strings for the different temp sensor readings
 
@@ -17,6 +19,7 @@ void NOT_ENOUGH_LEDS_MESSAGE(void);
 void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(void);
 void RTC_FORMATTING_ERROR_MESSAGE(void);
 void RTC_SET_ERROR_MESSAGE(void);
+void BUFFER_FULL_MESSAGE(void);
 void BUFFER_OVERFLOW_MESSAGE(void);
 const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
@@ -59,7 +62,10 @@ void logError(int Error, int optionalInt){
     case RTC_SET_ERROR:
       RTC_SET_ERROR_MESSAGE();
       break;
-    case BUFFER_OVERFLOW:
+    case RX_BUFFER_FULL:
+      BUFFER_FULL_MESSAGE();
+      break;
+    case RX_BUFFER_OVERFLOW:
       BUFFER_OVERFLOW_MESSAGE();
       break;
     default:
@@ -162,9 +168,9 @@ void ALL_READS_MARKED_INVALID_MESSAGE(int selectedReadSensorNum){
   usb_print("All sensor readings marked as invalid.");
   usb_print_delimiter(" ");
   if(selectedReadSensorNum == -1){ //This is used to indicate that an average temp is being displayed, not any one sensors' values
-    usb_print("Selecting average of non-outlier temperature readings");
+    usb_print("Selecting average of non-outlier temperature readings.");
   } else{
-    usb_printf_int("Selecting read from sensor %u", selectedReadSensorNum);
+    usb_printf_int("Selecting read from sensor %u.", selectedReadSensorNum);
   }
   return;
 }
@@ -190,28 +196,38 @@ void NOT_ENOUGH_LEDS_MESSAGE(){
 }
 
 void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(){
-  usb_print("Unrecognized command received via USART");
+  usb_print("Unrecognized command received via USART.");
+  usb_print_delimiter(" ");
   usb_print("Received: ");
   usb_print((const char*)usartMessage);
   return;
 }
 
 void RTC_FORMATTING_ERROR_MESSAGE(){
-  usb_print("Expected data to set RTC, but received data incorrectly formatted to do so");
+  usb_print("Expected data to set RTC, but received data incorrectly formatted to do so.");
+  usb_print_delimiter(" ");
   usb_print("Received: ");
   usb_print((const char*)usartMessage);
   return;
 }
 
 void RTC_SET_ERROR_MESSAGE(){
-  usb_print("An error occured while attempting to set the parsed RTC time or date");
+  usb_print("An error occured while attempting to set the parsed RTC time or date.");
   return;
 }
 
+void BUFFER_FULL_MESSAGE(void){
+  usb_print("The buffer is currently full of a command that has yet to be processed.");
+  usb_print_delimiter(" ");
+  usb_print("Please resend the prior message.");
+}
+
 void BUFFER_OVERFLOW_MESSAGE(void){
-  usb_print("The rxBuf received a message or command with too many characters. ");
+  usb_print("The rxBuf received a message or command with too many characters.");
+  usb_print_delimiter(" ");
   usb_print("Received: ");
   usb_print((const char*)usartMessage);
-  usb_print(" Clearing buffer."); //NOTICE the space in front of 'Clearing buffer'
+  usb_print_delimiter(" ");
+  usb_print("Clearing buffer."); //NOTICE the space in front of 'Clearing buffer'
   return;
 }

@@ -68,7 +68,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
           rxBuf[rxIndex] = '\0';
 
           //Log a buffer overflow error
-          interruptError = BUFFER_OVERFLOW;
+          interruptError = RX_BUFFER_OVERFLOW;
 
           //Reset the buffer
           rxIndex = 0;
@@ -77,12 +77,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
     else{
       //Full message received
       rxBuf[rxIndex] = '\0';
-
-      strncpy(usartMessage, rxBuf, BUFFER_SIZE);  //Store the data from rxBuf in usartMessage...    
-      fullMessageReceived = 1;
-
-      //Reset the rxBuf buffer:
-      rxIndex = 0;
+      
+      if(fullMessageReceived == 0){ //If any prior message has already been processed...
+        strncpy((uint8_t *)usartMessage, rxBuf, BUFFER_SIZE);  //...store the data from rxBuf in usartMessage...    
+        fullMessageReceived = 1;
+        //Reset the rxBuf buffer:
+        rxIndex = 0;
+      } else {
+        logError(RX_BUFFER_FULL, -1);
+      }
     }
 
     //Restart reception of data

@@ -171,7 +171,6 @@ void RTC_RequestTime(void){
 void usartMessageHandler(void){
       //Process the received transmission information
       if(fullMessageReceived){
-        fullMessageReceived = 0;
         if(setTime == 1){
           //If the program progresses here, it should have received the time data
           //reset the 'receiveTimeData' variable and set 'setTime', to attempt to set the RTC with the received data
@@ -197,8 +196,10 @@ void usartMessageHandler(void){
         } else {
           logError(UNRECOGNIZED_COMMAND_RECEIVED, -1);
         }
-      }
-      /*CAN ADD FUTURE USART COMMANDS TO BE PROCESSED TO THIS CHAINED IF-ELSE BLOCK*/
+        /*CAN ADD FUTURE USART COMMANDS TO BE PROCESSED TO THIS CHAINED IF-ELSE BLOCK*/
+        fullMessageReceived = 0;
+      }      
+    return;
 }
 
 /* USER CODE END 4 */

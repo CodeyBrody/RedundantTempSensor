@@ -1,6 +1,5 @@
 #ifndef SENSOR_H
 #define SENSOR_H
-#include <stdlib.h>
 #include <math.h>
 #include "main.h"
 #include "hardware.h"

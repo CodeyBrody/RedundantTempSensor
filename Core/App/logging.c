@@ -6,7 +6,7 @@
 #include "stdio.h"
 
 uint8_t buf[5]; //Buffer to hold fault strings for the different temp sensor readings
-
+/*ERROR MESSAGE FUNCTIONS*/
 void MISSING_SENSORS_MESSAGE(int optionalInt);
 void ALL_SENSOR_READS_MISSING_MESSAGE(void);
 void SENSOR_READ_MISSING_MESSAGE(int optionalInt);
@@ -20,6 +20,8 @@ void RTC_FORMATTING_ERROR_MESSAGE(void);
 void RTC_SET_ERROR_MESSAGE(void);
 void BUFFER_FULL_MESSAGE(void);
 void BUFFER_OVERFLOW_MESSAGE(void);
+
+/*Faults -> String Conversion Function*/
 const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
 void logError(int Error, int optionalInt){

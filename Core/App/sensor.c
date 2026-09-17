@@ -9,56 +9,49 @@
 
 extern uint8_t TEMP_REGISTER_ADDRESS;
 extern float TEMP_CONVERSION_VAL;
-extern uint8_t TMP102_ADDRESSES[SENSOR_COUNT];
-
-// /*The actually addresses of each sensor being used (stored in order)*/
-uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
+extern uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
 uint8_t I2CBuf[2]; //Buffer to send and receive data to/from the sensors via the I2C bus. 
 
 uint8_t discoverSensorArray(uint8_t SensorCount, Sensor sensors[]){
     HAL_StatusTypeDef ret;
-    uint8_t discoveredSensorCount = 0;
+    uint8_t discoveredSensorCount = 0; //A variable to be returned holding the count of sensors successfully communicated with ('discovered')
 
     for(int i = 0; i < SensorCount; i++){
-        ret = HAL_I2C_Master_Transmit(&hi2c1, TMP102_ADDRESSES[i], I2CBuf, 1, I2C_TIMEOUT_MS);
-        if(ret != HAL_OK){ //If we get anything other than HAL_OK. copy error message to buffer and skip next steps...
+        ret = HAL_I2C_Master_Transmit(&hi2c1, SENSOR_ADDRESSES[i], I2CBuf, 1, I2C_TIMEOUT_MS);
+        if(ret != HAL_OK){ //If we get anything other than HAL_OK, then skip next steps...
             continue;
         }
-        else{ //If we successfully communicate with a sensor at that address, then add that address to a sensor in the array of sensors
-            SENSOR_ADDRESSES[discoveredSensorCount] = TMP102_ADDRESSES[i];
-            discoveredSensorCount++;
-            if (discoveredSensorCount == SensorCount){
-                return discoveredSensorCount;
+        else{ //If we successfully communicate with a sensor at that address...
+            discoveredSensorCount++; //...then increment 'discoveredSensorCount'
+            if (discoveredSensorCount == SensorCount){ //If we have discovered 'SensorCount' sensors, then we're done!
+                return discoveredSensorCount;   //Return the number of sensors discovered (should be SensorCount).
             }
         }
     }
     //If we get to this point, we did not discover 'SensorCount' number of sensors
-    return discoveredSensorCount;
+    return discoveredSensorCount; //Return the number of sensors discovered
 }
 
 void initSensorArray(uint8_t SensorCount, Sensor sensors[]){
     for(int i = 0; i< SensorCount; i++){
-        //MODIFY TMP102_ADDRESSES to SENSOR_ADDRESSES if using 'discover sensors' strategy
-        Sensor s = {TMP102_ADDRESSES[i], NAN, 0, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
+        Sensor s = {SENSOR_ADDRESSES[i], NAN, 0, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
         sensors[i] = s;
     }
     return;
 }
 
 void setupSensors(uint8_t SensorCount, Sensor sensors[]){
-    /*The following code can be uncommented to discover which sensore are available at the start...
-      ...however, if this is done, the sensors that were not discovered at the start will ...
-      ...not be retried later in the program should they become available. */
-    /*NOTE: See comment in 'initSensorArray' regarding changing the array used to initialize
-            the Sensor data structures if you choose to use the 'discover sensors' route.*/
 
-    // int discoveredSensorCount = discoverSensorArray(SensorCount, sensors);
-    // if(discoveredSensorCount != SensorCount){
-    //     logError(MISSING_SENSORS, discoveredSensorCount);
-    // }
+    //Check communication with each expected sensor (using the addresses from SENSOR_ADDRESSES in hardware.c)...
+    int discoveredSensorCount = discoverSensorArray(SensorCount, sensors);
 
-    initSensorArray(SensorCount, sensors);
+    if(discoveredSensorCount != SensorCount){ //If the number of sensors discovered does not match the anticipated sensor count...
+        logError(MISSING_SENSORS, discoveredSensorCount); //...log an error
+    }
+
+    //Initialize sensor structs (including addresses not discovered, in case communication with them starts working later)
+    initSensorArray(discoveredSensorCount, sensors);
 }
 
 float readTempSensor(Sensor *s){

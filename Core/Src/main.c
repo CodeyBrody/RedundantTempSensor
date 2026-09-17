@@ -32,6 +32,7 @@
 #include "error_codes.h"
 #include "rtc.h"
 #include "stm32.h"
+#include "usb_comm.h"
 
 /* USER CODE END Includes */
 
@@ -60,12 +61,20 @@ float displayTemp = NAN;
 //A variable to determine whether enough time has passed since the last read session
 volatile uint8_t readNow = 1;
 
+/*USART Message Handling Variables*/
+uint8_t setTime = 0; //Used to tell the system that the RTC is ready to be set
+uint8_t sendTimeMessage = 0; //Used to determine whether or not to send 'SEND_TIME' message via USART
+volatile uint8_t usartMessage[BUFFER_SIZE]; //A buffer to hold the complete received USART messages
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 
 /* USER CODE BEGIN PFP */
 void prepNextSensorRead(void);
+void usartMessageHandler(void);
+void RTC_RequestTime(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -138,6 +147,7 @@ int main(void)
       prepNextSensorRead();
     }
     interruptFlagHandler();
+    usartMessageHandler();
     updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be on
     /* USER CODE END WHILE */
 
@@ -151,6 +161,44 @@ int main(void)
 void prepNextSensorRead(void){
   clearFaults(sensors);
   displayTemp = NAN;
+}
+
+void RTC_RequestTime(void){
+    setTime = 1;
+    usb_println("SEND_TIME");
+}
+
+void usartMessageHandler(void){
+      //Process the received transmission information
+      if(fullMessageReceived){
+        fullMessageReceived = 0;
+        if(setTime == 1){
+          //If the program progresses here, it should have received the time data
+          //reset the 'receiveTimeData' variable and set 'setTime', to attempt to set the RTC with the received data
+              uint8_t returnCode = RTC_SetTime();
+              if(returnCode){ //If the time is not accurately set...
+                switch (returnCode){
+                  case 1: logError(RTC_FORMATTING_ERROR, -1); //...log an error
+                          break;
+                  case 2: logError(RTC_SET_ERROR, -1); //...or maybe this error
+                          break;
+                  default:
+                          break;
+                }
+                usb_print("SEND_TIME\r\n");
+                setTime = 1;
+              } else {
+                setTime = 0;
+              }
+        } else if(strcmp((const char*)usartMessage, "SET_TIME") == 0){ //If "SET_TIME" was received...
+          //Set the boolean variable to set the time on the next pass through
+          setTime = 1;
+          usb_print("SEND_TIME\r\n");
+        } else {
+          logError(UNRECOGNIZED_COMMAND_RECEIVED, -1);
+        }
+      }
+      /*CAN ADD FUTURE USART COMMANDS TO BE PROCESSED TO THIS CHAINED IF-ELSE BLOCK*/
 }
 
 /* USER CODE END 4 */

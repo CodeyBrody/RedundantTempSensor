@@ -24,5 +24,6 @@
 #define UNRECOGNIZED_COMMAND_RECEIVED 500 //Unrecognized command received via USART
 #define RTC_FORMATTING_ERROR 501 //The expected data to set RTC, and received data was incorrectly formatted
 #define RTC_SET_ERROR 502 //An error occured while attempting to set the parsed RTC time or date
+#define BUFFER_OVERFLOW 503 //The rxBuf received a message or command with too many characters
 
 #endif

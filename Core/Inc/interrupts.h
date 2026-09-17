@@ -8,13 +8,9 @@ extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim16;
 extern volatile uint8_t readNow;
 extern uint8_t RTC_SetTime(void);
+extern volatile uint8_t usartMessage[BUFFER_SIZE];  //A buffer to store the received messages via USART
 
-/*Variables for receiving USART transmission data*/
-extern uint8_t rxBuf[BUFFER_SIZE];  //Create a buffer to receive data over USART
-extern uint8_t rxByte; //To hold the next incoming byte
-extern uint8_t rxIndex; //To keep track of the index for the next byte in the rxBuf
-
-extern volatile uint8_t receiveTimeData; //Used to determine if data to set time is about to be recieved
+extern volatile uint8_t fullMessageReceived; //True if a full message has been received via USART
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 

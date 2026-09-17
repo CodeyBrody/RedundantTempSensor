@@ -6,7 +6,6 @@
 
 extern uint8_t rxBuf[BUFFER_SIZE];  //A buffer to receive data over USART
 extern RTC_HandleTypeDef hrtc;
-extern volatile uint8_t receiveTimeData;
 
 
 uint8_t calculate_time(uint8_t firstDigit, uint8_t secondDigit){
@@ -122,9 +121,4 @@ uint8_t RTC_SetTime(void){
   }
 
   return 0;
-}
-
-void RTC_RequestTime(void){
-    receiveTimeData = 1;
-    usb_println("SEND_TIME");
 }

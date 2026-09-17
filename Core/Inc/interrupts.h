@@ -1,6 +1,8 @@
+#ifndef INTERRUPTS_H
+#define INTERRUPTS_H
+
 #include "main.h"
 #include "defines.h"
-#include <string.h>
 
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim16;
@@ -19,3 +21,5 @@ void setTIMInterrupt();
 void setUSARTInterrupt();
 
 void interruptFlagHandler();
+
+#endif /*INTERRUPTS_H*/

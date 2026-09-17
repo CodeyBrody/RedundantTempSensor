@@ -12,7 +12,7 @@ void print_temp_c(float temp){
     else {
         float d_temp = temp*100;
         snprintf((char*)txBuf, BUFFER_SIZE,
-                    "%u.%02u",
+                    "%d.%02d",
                     ((signed int)d_temp / 100),
                     ((signed int)d_temp % 100));
     }

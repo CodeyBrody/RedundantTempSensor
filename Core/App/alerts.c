@@ -73,7 +73,7 @@ void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)
   if(duration == BEEP){
     buzzerDuration = BEEP_LENGTH;
   } else {
-    buzzerDuration = 20000 * DELTA;
+    buzzerDuration = 20000 * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC;
   }
   buzzerOn();
 }

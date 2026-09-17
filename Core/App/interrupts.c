@@ -20,7 +20,7 @@ void interruptFlagHandler(){
 
 void setTIMInterrupt(){
     /*Set the timer interrupt to sample the sensor measurements every DELTA seconds*/
-  __HAL_TIM_SET_AUTORELOAD(&htim16, DELTA * 10000 - 1);
+  __HAL_TIM_SET_AUTORELOAD(&htim16, REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC * 10000 - 1);
     HAL_TIM_Base_Start_IT(&htim16);
     return;
 }
@@ -79,7 +79,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
       rxBuf[rxIndex] = '\0';
       
       if(fullMessageReceived == 0){ //If any prior message has already been processed...
-        strncpy((uint8_t *)usartMessage, rxBuf, BUFFER_SIZE);  //...store the data from rxBuf in usartMessage...    
+        strncpy((char *)usartMessage, (const char *)rxBuf, BUFFER_SIZE);  //...store the data from rxBuf in usartMessage...    
         fullMessageReceived = 1;
         //Reset the rxBuf buffer:
         rxIndex = 0;

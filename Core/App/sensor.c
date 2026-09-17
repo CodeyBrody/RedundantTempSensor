@@ -3,7 +3,6 @@
 #include "main.h"
 #include "logging.h"
 #include "error_codes.h"
-#include "string.h"
 #include "usb_comm.h"
 #include "hardware.h"
 #include "defines.h"

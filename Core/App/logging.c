@@ -1,5 +1,4 @@
 #include "logging.h"
-#include "string.h"
 #include "faults.h"
 #include "usb_comm.h"
 #include "error_codes.h"

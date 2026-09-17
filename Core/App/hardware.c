@@ -1,10 +1,10 @@
 #include "hardware.h"
 
-uint8_t TEMP_REGISTER_ADDRESS = 0;
-float TEMP_CONVERSION_VAL = 0.0625;
+const uint8_t TEMP_REGISTER_ADDRESS = 0;
+const float TEMP_CONVERSION_VAL = 0.0625;
 
 /*Addresses being used by the sensors*/
-uint8_t TMP102_ADDRESSES[] = {(0x48<<1), (0x49<<1), (0x4A<<1)};
+const uint8_t TMP102_ADDRESSES[] = {(0x48<<1), (0x49<<1), (0x4A<<1)};
 
 /*DEFINE LED NUMBERS TO BE USED HERE:👇*/
 const int SENSOR_1_LED_G = 0; 

@@ -126,7 +126,7 @@ void logCurrentDateTime(void){
 
 const char* fault_stringify(uint8_t fault_flag, uint8_t buf[]){
   /*Create a string with symbols indicating the faults of the sensor
-    ^ => outlier, + => above sensor range, - => below sensor range, * => communication error */
+    * => outlier, + => above sensor range, - => below sensor range, ` => communication error */
   uint8_t index = 0;
   if(fault_flag & COMM_FAULT){
     buf[index] = '`';

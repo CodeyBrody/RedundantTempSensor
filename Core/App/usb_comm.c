@@ -1,6 +1,8 @@
 #include "usb_comm.h"
 #include "defines.h"
 #include "math.h"
+#include "string.h"
+#include "stdio.h"
 
 uint8_t txBuf[BUFFER_SIZE];
 extern UART_HandleTypeDef huart2;

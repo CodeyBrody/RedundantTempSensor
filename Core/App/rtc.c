@@ -3,6 +3,7 @@
 #include "defines.h"
 #include "interrupts.h"
 #include "ctype.h"
+#include "string.h"
 
 extern uint8_t rxBuf[BUFFER_SIZE];  //A buffer to receive data over USART
 extern RTC_HandleTypeDef hrtc;

@@ -2,11 +2,12 @@
 #include "error_codes.h"
 #include "logging.h"
 #include "usb_comm.h"
+#include "string.h"
 
 uint8_t rxBuf[BUFFER_SIZE];  //Create a buffer to receive incoming data over USART
 uint8_t rxByte; //To hold the next incoming byte
 uint8_t rxIndex = 0; //To keep track of the index for the next byte in the rxBuf
-uint16_t interruptError = 0;
+volatile uint16_t interruptError = 0;
 
 volatile uint8_t fullMessageReceived = 0;
 
@@ -84,7 +85,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
         //Reset the rxBuf buffer:
         rxIndex = 0;
       } else {
-        logError(RX_BUFFER_FULL, -1);
+        interruptError = RX_BUFFER_FULL;
       }
     }
 

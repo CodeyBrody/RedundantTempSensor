@@ -33,6 +33,7 @@
 #include "rtc.h"
 #include "stm32.h"
 #include "usb_comm.h"
+#include "string.h"
 
 /* USER CODE END Includes */
 

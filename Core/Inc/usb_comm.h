@@ -1,8 +1,6 @@
 #ifndef USB_COMM_H
 #define USB_COMM_H
 #include "main.h"
-#include "string.h"
-#include "stdio.h"
 
 
 extern UART_HandleTypeDef huart2;

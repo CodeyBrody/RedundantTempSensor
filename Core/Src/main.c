@@ -148,7 +148,7 @@ int main(void)
     }
     usartMessageHandler();
     interruptFlagHandler();
-    updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be on
+    updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be turned on
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

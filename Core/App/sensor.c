@@ -51,7 +51,7 @@ void setupSensors(uint8_t SensorCount, Sensor sensors[]){
     }
 
     //Initialize sensor structs (including addresses not discovered, in case communication with them starts working later)
-    initSensorArray(discoveredSensorCount, sensors);
+    initSensorArray(SensorCount, sensors);
 }
 
 float readTempSensor(Sensor *s){

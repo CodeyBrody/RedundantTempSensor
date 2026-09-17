@@ -213,7 +213,7 @@ void RTC_FORMATTING_ERROR_MESSAGE(){
 }
 
 void RTC_SET_ERROR_MESSAGE(){
-  usb_print("An error occured while attempting to set the parsed RTC time or date.");
+  usb_print("An error occurred while attempting to set the parsed RTC time or date.");
   return;
 }
 

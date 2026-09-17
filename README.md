@@ -342,7 +342,7 @@ A missing temperature is represented by:
 --.--
 ```
 
-A description of the different peices of information follows:
+A description of the different pieces of information follows:
 - Timestamp - The timestamp for the specific batch of data
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
 - Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--")

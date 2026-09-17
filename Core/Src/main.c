@@ -65,7 +65,7 @@ volatile uint8_t readNow = 1;
 /*USART Message Handling Variables*/
 uint8_t setTime = 0; //Used to tell the system that the RTC is ready to be set
 uint8_t sendTimeMessage = 0; //Used to determine whether or not to send 'SEND_TIME' message via USART
-volatile uint8_t usartMessage[BUFFER_SIZE]; //A buffer to hold the complete received USART messages
+volatile uint8_t usartMessage[BUFFER_SIZE]; //A buffer to hold complete received USART messages
 
 /* USER CODE END PV */
 

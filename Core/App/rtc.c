@@ -37,12 +37,12 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
   }
   
   /*Check to make sure all the numbers intended to be digits are digits*/
-  if(!isdigit(input[1])){
+  if(!isdigit((unsigned char)input[1])){
         return 1;
   }
   for(int i = 0; i < 19; i++){
     if((i % 3) != 1){
-      if(!isdigit(input[i])){
+      if(!isdigit((unsigned char)input[i])){
         return 1;
       }
     }

@@ -67,12 +67,18 @@ float readTempSensor(Sensor *s){
     int16_t sensor_value; 
     I2CBuf[0] = TEMP_REGISTER_ADDRESS;
     ret = HAL_I2C_Master_Transmit(&hi2c1, s->address, I2CBuf, 1, I2C_TIMEOUT_MS);
-    if(ret != HAL_OK){ //If we get anything other than HAL_OK, skip next steps...
+    if(ret != HAL_OK){ //If we get anything other than HAL_OK, retry...
+        ret = HAL_I2C_Master_Transmit(&hi2c1, s->address, I2CBuf, 1, I2C_TIMEOUT_MS);
+    }
+    if(ret != HAL_OK){ //if HAL_OK is still not received, skip the next code...(this will also flow through if the last if statement failed)
       //IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
     } else { //...but if HAL_OKAY was returned, request temp data.
-      ret = HAL_I2C_Master_Receive(&hi2c1, s->address, I2CBuf, 2, I2C_TIMEOUT_MS);
-      if(ret != HAL_OK){ //If error receiving temp data, skip next steps..
-        //IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE 
+        ret = HAL_I2C_Master_Receive(&hi2c1, s->address, I2CBuf, 2, I2C_TIMEOUT_MS);
+        if(ret != HAL_OK){ //If error receiving temp data, retry...
+            ret = HAL_I2C_Master_Receive(&hi2c1, s->address, I2CBuf, 2, I2C_TIMEOUT_MS);
+        }
+        if(ret != HAL_OK){ //if HAL_OK is still not received, skip the next code...(this will also flow through if the last if statement failed)
+        //IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
       } else {/*...then calculate the temperature in Celsius from the returned "temperature value".*/
 
         //Combine the bytes (format 0000|xxxxxxxx|xxxx -> first 8 x's from buf[0], last 4 from buf[1])
@@ -88,6 +94,8 @@ float readTempSensor(Sensor *s){
         return 1;
       }
     }
+
+    //If HAL_OK was ever NOT received in any of the if statements above, program execution should proceed to here
     s->faults |= COMM_FAULT;
     s->currTemp = NAN;
     return 0;

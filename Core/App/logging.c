@@ -17,6 +17,7 @@ void READ_MARKED_AS_OUTLIER_MESSAGE(int optionalInt);
 void NOT_ENOUGH_LEDS_MESSAGE(void);
 void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(void);
 void RTC_FORMATTING_ERROR_MESSAGE(void);
+void RTC_INVALID_DATETIME_ERROR_MESSAGE(void);
 void RTC_SET_ERROR_MESSAGE(void);
 void BUFFER_FULL_MESSAGE(void);
 void BUFFER_OVERFLOW_MESSAGE(void);
@@ -59,6 +60,9 @@ void logError(int Error, int optionalInt){
       break;
     case RTC_FORMATTING_ERROR:
       RTC_FORMATTING_ERROR_MESSAGE();
+      break;
+    case RTC_INVALID_DATETIME_ERROR:
+      RTC_INVALID_DATETIME_ERROR_MESSAGE();
       break;
     case RTC_SET_ERROR:
       RTC_SET_ERROR_MESSAGE();
@@ -155,7 +159,7 @@ void MISSING_SENSORS_MESSAGE(int discoveredSensorCount){
   return;
 }
 
-void ALL_SENSOR_READS_MISSING_MESSAGE(){
+void ALL_SENSOR_READS_MISSING_MESSAGE(void){
   usb_print("All Sensor Readings Missing.");
   return;
 }
@@ -191,12 +195,12 @@ void READ_MARKED_AS_OUTLIER_MESSAGE(int sensorNum){
   return;
 }
 
-void NOT_ENOUGH_LEDS_MESSAGE(){
+void NOT_ENOUGH_LEDS_MESSAGE(void){
   usb_print("Insufficient LEDs for the number of sensors expected.");
   return;
 }
 
-void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(){
+void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(void){
   usb_print("Unrecognized command received via USART.");
   usb_print_delimiter(" ");
   usb_print("Received: ");
@@ -204,7 +208,7 @@ void UNRECOGNIZED_COMMAND_RECEIVED_MESSAGE(){
   return;
 }
 
-void RTC_FORMATTING_ERROR_MESSAGE(){
+void RTC_FORMATTING_ERROR_MESSAGE(void){
   usb_print("Expected data to set RTC, but received data incorrectly formatted to do so.");
   usb_print_delimiter(" ");
   usb_print("Received: ");
@@ -212,7 +216,15 @@ void RTC_FORMATTING_ERROR_MESSAGE(){
   return;
 }
 
-void RTC_SET_ERROR_MESSAGE(){
+void RTC_INVALID_DATETIME_ERROR_MESSAGE(void){
+  usb_print("An invalid date/time was received as input to set the RTC.");
+  usb_print_delimiter(" ");
+  usb_print("Received: ");
+  usb_print((const char*)usartMessage);
+  return;
+}
+
+void RTC_SET_ERROR_MESSAGE(void){
   usb_print("An error occurred while attempting to set the parsed RTC time or date.");
   return;
 }

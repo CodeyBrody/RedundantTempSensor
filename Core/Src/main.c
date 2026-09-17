@@ -175,12 +175,14 @@ void usartMessageHandler(void){
         if(setTime == 1){
           //If the program progresses here, it should have received the time data
           //reset the 'receiveTimeData' variable and set 'setTime', to attempt to set the RTC with the received data
-              uint8_t returnCode = RTC_SetTime();
+              int8_t returnCode = RTC_SetTime();
               if(returnCode){ //If the time is not accurately set...
                 switch (returnCode){
                   case 1: logError(RTC_FORMATTING_ERROR, -1); //...log an error
                           break;
                   case 2: logError(RTC_SET_ERROR, -1); //...or maybe this error
+                          break;
+                  case 3: logError(RTC_SET_ERROR, -1); //...or maybe even this error!
                           break;
                   default:
                           break;

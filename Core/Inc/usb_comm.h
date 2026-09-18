@@ -2,7 +2,6 @@
 #define USB_COMM_H
 #include "main.h"
 
-
 extern UART_HandleTypeDef huart2;
 
 void usb_print(const char *message);

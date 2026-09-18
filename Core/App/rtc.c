@@ -16,10 +16,6 @@ uint8_t calculate_time(uint8_t firstDigit, uint8_t secondDigit){
   );
 }
 
-uint8_t check_bounds(uint8_t num, uint8_t upper_bound, uint8_t lower_bound){
-  return (num <= upper_bound && num >= lower_bound);
-}
-
 uint8_t SakamotoAlgo(RTC_DateTypeDef sDate){
   uint8_t t[12] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 

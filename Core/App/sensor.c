@@ -13,7 +13,7 @@ extern uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
 uint8_t I2CBuf[2]; //Buffer to send and receive data to/from the sensors via the I2C bus. 
 
-uint8_t discoverSensorArray(uint8_t SensorCount, Sensor sensors[]){
+uint8_t discoverSensorArray(uint8_t SensorCount){
     HAL_StatusTypeDef ret;
     uint8_t discoveredSensorCount = 0; //A variable to be returned holding the count of sensors successfully communicated with ('discovered')
 
@@ -44,7 +44,7 @@ void initSensorArray(uint8_t SensorCount, Sensor sensors[]){
 void setupSensors(uint8_t SensorCount, Sensor sensors[]){
 
     //Check communication with each expected sensor (using the addresses from SENSOR_ADDRESSES in hardware.c)...
-    int discoveredSensorCount = discoverSensorArray(SensorCount, sensors);
+    int discoveredSensorCount = discoverSensorArray(SensorCount);
 
     if(discoveredSensorCount != SensorCount){ //If the number of sensors discovered does not match the anticipated sensor count...
         logError(MISSING_SENSORS, discoveredSensorCount); //...log an error

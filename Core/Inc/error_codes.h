@@ -5,7 +5,7 @@
 
 /*SENSOR READ ERRORS*/
 /*Missing Sensors*/
-#define MISSING_SENSORS 100 // Unable to discover the number of sensors expected
+#define SENSORS_NOT_DETECTED 100 // Unable to discover the number of sensors expected
 /*Missing Sensor Readings*/
 #define ALL_SENSOR_READS_MISSING 200 // All Sensor Readings Missing
 #define SENSOR_READ_MISSING 201      // Sensor Reading Missing

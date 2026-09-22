@@ -7,7 +7,7 @@
 
 uint8_t buf[5]; // Buffer to hold fault strings for the different temp sensor readings
 /*ERROR MESSAGE FUNCTIONS*/
-void MISSING_SENSORS_MESSAGE(int optionalInt);
+void SENSORS_NOT_DETECTED_MESSAGE(int optionalInt);
 void ALL_SENSOR_READS_MISSING_MESSAGE(void);
 void SENSOR_READ_MISSING_MESSAGE(int optionalInt);
 void ALL_READS_MARKED_INVALID_MESSAGE(int optionalInt);
@@ -40,8 +40,8 @@ void logError(int Error, int optionalInt)
 
     switch (Error)
     {
-        case MISSING_SENSORS:
-            MISSING_SENSORS_MESSAGE(optionalInt);
+        case SENSORS_NOT_DETECTED:
+            SENSORS_NOT_DETECTED_MESSAGE(optionalInt);
             break;
         case ALL_SENSOR_READS_MISSING:
             ALL_SENSOR_READS_MISSING_MESSAGE();
@@ -164,7 +164,7 @@ const char *fault_stringify(uint8_t fault_flag, uint8_t buf[])
     return (char *)buf;
 }
 
-void MISSING_SENSORS_MESSAGE(int discoveredSensorCount)
+void SENSORS_NOT_DETECTED_MESSAGE(int discoveredSensorCount)
 {
     usb_print("Unable to discover the number of sensors expected.");
     usb_print_delimiter(" ");

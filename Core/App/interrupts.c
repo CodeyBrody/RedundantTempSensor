@@ -25,7 +25,8 @@ void interruptFlagHandler()
 
 void setTIMInterrupt()
 {
-    /*Set the timer interrupt to sample the sensor measurements every DELTA seconds*/
+    /*Set the timer interrupt to sample the sensor measurements every
+     * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC seconds*/
     __HAL_TIM_SET_AUTORELOAD(&htim16, REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC * 10000 - 1);
     HAL_TIM_Base_Start_IT(&htim16);
     return;

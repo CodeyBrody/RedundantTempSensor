@@ -73,10 +73,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 {
                     rxBuf[rxIndex++] = rxByte;
                 }
-                else
-                {
-                    rxIndex++;
-                }
             }
             else
             {

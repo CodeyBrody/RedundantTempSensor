@@ -1,10 +1,12 @@
 #ifndef SENSOR_H
 #define SENSOR_H
-#include <math.h>
-#include "main.h"
 #include "hardware.h"
+#include "main.h"
+#include <math.h>
 
-typedef struct {
+
+typedef struct
+{
     uint8_t address;
     float currTemp;
     // char *currTimeStamp; /*Can possibly use these later...for now, there's no use for them.*/

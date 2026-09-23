@@ -4,5 +4,4 @@
 
 uint8_t RTC_SetTime(void);
 
-
 #endif /*RTC_H*/

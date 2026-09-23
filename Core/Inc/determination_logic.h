@@ -4,5 +4,4 @@
 
 float determineTemp(Sensor sensors[]);
 
-
 #endif /*DETERMINATION_LOGIC_H*/

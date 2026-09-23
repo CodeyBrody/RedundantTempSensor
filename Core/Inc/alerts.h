@@ -1,9 +1,10 @@
 #ifndef ALERTS_H
 #define ALERTS_H
-#include "sensor.h"
 #include "faults.h"
-#include "main.h"
 #include "hardware.h"
+#include "main.h"
+#include "sensor.h"
+
 
 extern SPI_HandleTypeDef hspi1;
 

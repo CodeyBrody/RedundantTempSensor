@@ -412,11 +412,17 @@ They are also terminated by carriage return and newline characters. A table of d
 
 ### Communication to the Microcontroller
 
-The firmware maintains a single pending received message. If a complete message has not yet been processed by the time another message is fully received, the additional message is discarded and an RX_BUFFER_FULL error is reported, along with a request for the message to be resent.
+#### Receive Buffer Behavior
 
-Messages exceeding the receive buffer size generate an RX_BUFFER_OVERFLOW error. Once the maximum amount of characters have been received (by default 99 characters), the error is generated, the buffer is reset, and any remaining bytes are then processed as being part of a new message.
+The firmware maintains a single pending received message. If a complete message has not yet been processed by the time another message is fully received, the additional message is discarded and an `RX_BUFFER_FULL` error is reported, along with a request for the message to be resent.
 
-The only current command the firmware has been set up to handle via USART is setting the microcontroller's RTC, the process of which is explained below.
+Messages exceeding the receive buffer size generate an `RX_BUFFER_OVERFLOW` error. Once the maximum amount of characters have been received (by default 99 characters), the error is generated, the buffer is reset, and any remaining bytes are then processed as being part of a new message.
+
+Messages are terminated by a LF (`\n`). CR (`\r`) characters are ignored (but **do** count towards the 99 max character limit for messages), allowing either LF (`\n`) or CRLF (`\n\r`) line endings to terminate a message.
+
+Messages that are not recognized as a valid command generate an `UNRECOGNIZED_COMMAND_RECEIVED` error, unless the system is in a state expecting to receive date/time data via USART, in which case other errors may be logged in the case of invalid or incorrectly formatted data.
+
+The only current command the firmware has been set up to recognize and handle via USART is setting the microcontroller's RTC, the process of which is explained below.
 
 #### Initial Setting of the RTC Via USART Communication
 

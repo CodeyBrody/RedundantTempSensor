@@ -7,7 +7,6 @@
 #include "main.h"
 #include "usb_comm.h"
 
-
 extern uint8_t TEMP_REGISTER_ADDRESS;
 extern float TEMP_CONVERSION_VAL;
 extern uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
@@ -81,7 +80,7 @@ float readTempSensor(Sensor *s)
     if (ret != HAL_OK)
     { // if HAL_OK is still not received, skip the next code...(this will also flow through if the
       // last if statement failed)
-        // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
+      // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
     }
     else
     { //...but if HAL_OKAY was returned, request temp data.
@@ -93,7 +92,7 @@ float readTempSensor(Sensor *s)
         if (ret != HAL_OK)
         { // if HAL_OK is still not received, skip the next code...(this will also flow through if
           // the last if statement failed)
-            // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
+          // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
         }
         else
         { /*...then calculate the temperature in Celsius from the returned "temperature value".*/

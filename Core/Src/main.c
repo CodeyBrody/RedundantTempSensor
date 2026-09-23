@@ -121,7 +121,8 @@ int main(void)
     /*Discover currently communicating temp sensors and initialize the structs for the sensors*/
     setupSensors(SENSOR_COUNT, sensors);
 
-    // Setup timer 16 interrupt for reading the temp sensor registers every delta...
+    // Setup timer 16 interrupt for reading the temp sensor registers every
+    // REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC seconds...
     setTIMInterrupt();
 
     // Setup the USART Interrupt...
@@ -181,8 +182,11 @@ void usartMessageHandler(void)
         if (setTime == 1)
         {
             // If the program progresses here, it should have received the time data
-            // reset the 'receiveTimeData' variable and set 'setTime', to attempt to set the RTC
-            // with the received data
+            // Attempt to set the RTC with the received data, (logging appropriate errors should
+            // they occur)
+            // If an error occurs, resend the 'SEND_TIME\r\n' message and keep setTime = 1
+            // Otherwise set reset setTime to 0
+
             int8_t returnCode = RTC_SetTime();
             if (returnCode)
             { // If the time is not accurately set...

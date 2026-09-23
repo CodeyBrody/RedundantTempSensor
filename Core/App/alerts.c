@@ -3,8 +3,9 @@
 #include "hardware.h"
 #include "main.h"
 
-
 #define BEEP_LENGTH 500 // The length of a buzzer beep (in ms)
+
+extern SPI_HandleTypeDef hspi1;
 
 static uint16_t LEDVals =
     0; // Initializes a variable that is used to control the shift register outputs
@@ -12,6 +13,7 @@ static uint8_t activeBuzzer = 0; // Keeps track of whether the buzzer is current
 static uint32_t buzzerStartTime = 0;
 static uint32_t buzzerDuration = 0;
 
+// The different possible types of 'buzzes' that the buzzer can make 👇
 typedef enum
 {
     BEEP,
@@ -20,7 +22,7 @@ typedef enum
 
 void setSensorLeds(Sensor sensors[SENSOR_COUNT]);
 
-void setLEDValue(uint8_t LEDNumber, uint16_t LEDValue);
+void setLEDValue(uint8_t LEDNumber, uint8_t LEDValue);
 
 void shiftRegWrite(const uint16_t LEDVals);
 
@@ -51,10 +53,13 @@ void setSensorLeds(Sensor sensors[SENSOR_COUNT])
             setLEDValue(sensors[i].RYG.GREEN, 1);
         }
     }
+    // Set the LED values as determined above.
     shiftRegWrite(LEDVals);
 }
 
-void setLEDValue(uint8_t LEDNumber, uint16_t LEDValue)
+/*Sets the value of a specific LED (indicated by "LEDNumber") to the boolean value indicated by
+ * "LEDValue"*/
+void setLEDValue(uint8_t LEDNumber, uint8_t LEDValue)
 {
     if (LEDValue)
     {
@@ -76,12 +81,12 @@ void shiftRegWrite(const uint16_t LEDVals)
 
 void buzzerOn(void)
 {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(BUZZER_GPIO_PORT, BUZZER_PIN, GPIO_PIN_SET);
 }
 
 void buzzerOff(void)
 {
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(BUZZER_GPIO_PORT, BUZZER_PIN, GPIO_PIN_RESET);
 }
 
 void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)*/)
@@ -94,11 +99,16 @@ void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)
     }
     else
     {
+        /*The following code sets the buzzer duration to 2x the requested sensor sampling interval,
+         * which should cause the buzzer to continuously sound until the system reaches a state
+         * where the buzzer is no longer meant to be constantly sounding*/
         buzzerDuration = 20000 * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC;
     }
     buzzerOn();
 }
 
+/*This function sets the buzzer (activatiing or deactivating it for the appropriate amount of time)
+ * based on the fault values of the sensors in the `sensors[]` array*/
 void setBuzzer(Sensor sensors[SENSOR_COUNT])
 {
     uint8_t soundBuzzer = 0;

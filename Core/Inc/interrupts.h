@@ -1,15 +1,12 @@
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 
-#include "defines.h"
 #include "main.h"
-
 
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim16;
 extern volatile uint8_t readNow;
-extern volatile uint8_t
-    usartMessage[BUFFER_SIZE]; // A buffer to store the received messages via USART
+extern volatile uint8_t usartMessage[]; // A buffer to store the received messages via USART
 
 extern volatile uint8_t fullMessageReceived; // True if a full message has been received via USART
 
@@ -21,6 +18,6 @@ void setTIMInterrupt();
 
 void setUSARTInterrupt();
 
-void interruptFlagHandler();
+void interruptErrorHandler();
 
 #endif /*INTERRUPTS_H*/

@@ -4,14 +4,10 @@
 #include "main.h"
 #include <math.h>
 
-
 typedef struct
 {
     uint8_t address;
     float currTemp;
-    // char *currTimeStamp; /*Can possibly use these later...for now, there's no use for them.*/
-    // float lastTemp;
-    // char *lastTimeStamp;
     uint8_t faults;
     uint8_t lastFaults;
     struct RYGLed RYG;

@@ -6,6 +6,7 @@
 /*SENSOR READ ERRORS*/
 /*Missing Sensors*/
 #define SENSORS_NOT_DETECTED 100 // Unable to discover the number of sensors expected
+
 /*Missing Sensor Readings*/
 #define ALL_SENSOR_READS_MISSING 200 // All Sensor Readings Missing
 #define SENSOR_READ_MISSING 201      // Sensor Reading Missing
@@ -28,11 +29,18 @@
 
 /*USART COMM ERRORS*/
 #define UNRECOGNIZED_COMMAND_RECEIVED 500 // Unrecognized command received via USART
+
+/*RTC Setting Errors*/
 #define RTC_FORMATTING_ERROR                                                                       \
     501 // Expected data to set RTC, but data received was incorrectly formatted to do so
 #define RTC_INVALID_DATETIME_ERROR 502 // An invalid date was received as input to set the RTC
-#define RTC_SET_ERROR 503  // An error occurred while attempting to set the parsed RTC time or date
+#define RTC_SET_ERROR 503 // An error occurred while attempting to set the parsed RTC time or date
+
+/*USART Receive Buffer Errors*/
 #define RX_BUFFER_FULL 504 // The buffer is currently full of a command that has yet to be processed
 #define RX_BUFFER_OVERFLOW 505 // The rxBuf received a message or command with too many characters
+
+/*UNRECOGNIZED ERROR CODE*/
+#define UNRECOGNIZED_ERROR_RECEIVED 000
 
 #endif

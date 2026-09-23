@@ -5,9 +5,6 @@
 #include "main.h"
 #include "sensor.h"
 
-
-extern SPI_HandleTypeDef hspi1;
-
 void setAlerts(Sensor sensors[]);
 
 void updateBuzzer(void);

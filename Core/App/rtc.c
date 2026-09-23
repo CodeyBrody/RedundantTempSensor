@@ -5,7 +5,8 @@
 #include "string.h"
 #include "usb_comm.h"
 
-extern volatile uint8_t usartMessage[BUFFER_SIZE]; // A buffer to receive data over USART
+extern volatile uint8_t usartMessage[BUFFER_SIZE]; // A buffer to hold completed messages
+                                                   // received via USART
 extern RTC_HandleTypeDef hrtc;
 
 uint8_t calculate_time(uint8_t firstDigit, uint8_t secondDigit)
@@ -27,11 +28,11 @@ uint8_t SakamotoAlgo(RTC_DateTypeDef sDate)
             7);
 }
 
-/*A return value of 1 means a formatting error, a return value of 2 means an invalid date/time
- * error. Return value of 0 indicates A-OK!*/
+/*This function checks the input expected to be data to set the RTC. A return value from this
+ * function of 1 means a formatting error, a return value of 2 means an invalid date/time error.
+ * A return value of 0 indicates A-OK!*/
 uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTypeDef *sTime)
 {
-
     /*Check that the received string is the correct size*/
     if (strlen((const char *)input) != 19)
     {
@@ -61,7 +62,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
         return 1;
     }
 
-    uint8_t calculated_entry = 0; // A variable to hold the different calculated date/times
+    uint8_t calculated_entry = 0; // A variable to hold the different calculated date/time values
 
     uint8_t year = calculate_time(2, 3);
 
@@ -69,6 +70,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 
     calculated_entry = calculate_time(5, 6);
 
+    /*Validate the expected month entry data*/
     if (!(calculated_entry <= 12 && calculated_entry >= 1))
     {
         return 2;
@@ -117,7 +119,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 
     calculated_entry = calculate_time(8, 9);
 
-    // Use maxDays to determine if the days are valid for the month value provided
+    // Use maxDays to determine if the date value is valid for the month value provided
     if (!(calculated_entry <= maxDays && calculated_entry >= 1))
     {
         return 2;
@@ -166,7 +168,8 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 }
 
 /*A function to set the RTC time. Returns 0 on success, 1 for string formatting errors, 2 for
- *invalid date/time errors, and 3 for errors when using HAL code to attempt to set time or date*/
+ *invalid date/time errors, and 3 for errors when using HAL code to attempt to set time or date. A
+ * return code of -1 means an unrecognized return code was received from `RTC_checkTimeInput`*/
 uint8_t RTC_SetTime(void)
 {
 

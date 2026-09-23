@@ -6,6 +6,7 @@
 #include "usb_comm.h"
 
 uint8_t buf[5]; // Buffer to hold fault strings for the different temp sensor readings
+
 /*ERROR MESSAGE FUNCTIONS*/
 void SENSORS_NOT_DETECTED_MESSAGE(int optionalInt);
 void ALL_SENSOR_READS_MISSING_MESSAGE(void);
@@ -22,7 +23,7 @@ void RTC_SET_ERROR_MESSAGE(void);
 void BUFFER_FULL_MESSAGE(void);
 void BUFFER_OVERFLOW_MESSAGE(void);
 
-/*Faults -> String Conversion Function*/
+/*FAULTS -> STRING Conversion Function*/
 const char *fault_stringify(uint8_t fault_flag, uint8_t buf[]);
 
 void logError(int Error, int optionalInt)
@@ -38,6 +39,7 @@ void logError(int Error, int optionalInt)
     usb_printf_int("[%u]", Error);
     usb_print_delimiter(" ");
 
+    /*Print the appropriate error message based on the error being logged*/
     switch (Error)
     {
         case SENSORS_NOT_DETECTED:
@@ -82,7 +84,8 @@ void logError(int Error, int optionalInt)
         case RX_BUFFER_OVERFLOW:
             BUFFER_OVERFLOW_MESSAGE();
             break;
-        default:
+        case UNRECOGNIZED_ERROR_RECEIVED:
+        default: // If error code isn't one of the above recognized codes...
             usb_print("Error logged with unrecognized error code.");
             break;
     }
@@ -99,12 +102,12 @@ void logData(float displayTemp, Sensor sensors[])
     logCurrentDateTime();
     usb_print_delimiter(", ");
 
-    print_temp_c(displayTemp);
+    print_temp(displayTemp);
 
     for (int i = 0; i < SENSOR_COUNT; i++)
     {
         usb_print_delimiter(", ");
-        print_temp_c(sensors[i].currTemp);
+        print_temp(sensors[i].currTemp);
     }
 
     for (int i = 0; i < SENSOR_COUNT; i++)
@@ -193,7 +196,7 @@ void ALL_READS_MARKED_INVALID_MESSAGE(int selectedReadSensorNum)
       // values
         usb_print("Selecting average of non-outlier temperature readings.");
     }
-    else
+    else // Otherwise, communicate which sensor's reading is being selected
     {
         usb_printf_int("Selecting read from sensor %u.", selectedReadSensorNum);
     }
@@ -275,6 +278,6 @@ void BUFFER_OVERFLOW_MESSAGE(void)
     usb_print("Received: ");
     usb_print((const char *)usartMessage);
     usb_print_delimiter(" ");
-    usb_print("Clearing buffer."); // NOTICE the space in front of 'Clearing buffer'
+    usb_print("Clearing buffer.");
     return;
 }

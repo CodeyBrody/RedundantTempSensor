@@ -8,7 +8,7 @@
 #include "usb_comm.h"
 
 extern uint8_t TEMP_REGISTER_ADDRESS;
-extern float TEMP_CONVERSION_VAL;
+extern float TEMP_CONVERSION_VALUE;
 extern uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
 uint8_t I2CBuf[2]; // Buffer to send and receive data to/from the sensors via the I2C bus.
@@ -32,7 +32,7 @@ uint8_t discoverSensorArray(uint8_t SensorCount)
             if (discoveredSensorCount == SensorCount)
             { // If we have discovered 'SensorCount' sensors, then we're done!
                 return discoveredSensorCount; // Return the number of sensors discovered (should be
-                                              // SensorCount).
+                                              // SensorCount in this case).
             }
         }
     }
@@ -42,6 +42,7 @@ uint8_t discoverSensorArray(uint8_t SensorCount)
 
 void initSensorArray(uint8_t SensorCount, Sensor sensors[])
 {
+    // Initialize structure objects for each of the expected sensors, and place them in `sensors[]`
     for (int i = 0; i < SensorCount; i++)
     {
         Sensor s = {SENSOR_ADDRESSES[i], NAN, 0, 0, {REDLeds[i], YELLOWLeds[i], GREENLeds[i]}};
@@ -62,8 +63,8 @@ void setupSensors(uint8_t SensorCount, Sensor sensors[])
         logError(SENSORS_NOT_DETECTED, discoveredSensorCount); //...log an error
     }
 
-    // Initialize sensor structs (including addresses not discovered, in case communication with
-    // them starts working later)
+    // Initialize sensor structs (including thosw with addresses not discovered, in case
+    // communication with them is established later during operation)
     initSensorArray(SensorCount, sensors);
 }
 
@@ -78,9 +79,7 @@ float readTempSensor(Sensor *s)
         ret = HAL_I2C_Master_Transmit(&hi2c1, s->address, I2CBuf, 1, I2C_TIMEOUT_MS);
     }
     if (ret != HAL_OK)
-    { // if HAL_OK is still not received, skip the next code...(this will also flow through if the
-      // last if statement failed)
-      // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
+    { // if HAL_OK is not received on either try, skip the next code...
     }
     else
     { //...but if HAL_OKAY was returned, request temp data.
@@ -90,15 +89,14 @@ float readTempSensor(Sensor *s)
             ret = HAL_I2C_Master_Receive(&hi2c1, s->address, I2CBuf, 2, I2C_TIMEOUT_MS);
         }
         if (ret != HAL_OK)
-        { // if HAL_OK is still not received, skip the next code...(this will also flow through if
-          // the last if statement failed)
-          // IF WE LATER WANT TO LOG A MORE SPECIFIC ERROR, CAN INSERT HERE
+        { // if HAL_OK is still not received, skip the next code...
         }
         else
-        { /*...then calculate the temperature in Celsius from the returned "temperature value".*/
+        { /*...otherwise calculate the temperature in Celsius from the returned "temperature
+             value".*/
 
-            // Combine the bytes (format 0000|xxxxxxxx|xxxx -> first 8 x's from buf[0], last 4 from
-            // buf[1])
+            // Combine the bytes (ending format 0000|xxxxxxxx|xxxx -> first 8 x's from buf[0], last
+            // 4 from buf[1])
             sensor_value = ((uint16_t)I2CBuf[0] << 4 | I2CBuf[1] >> 4);
 
             // Convert to 2's complement, if the temperature is negative (the first bit is 1)
@@ -109,33 +107,35 @@ float readTempSensor(Sensor *s)
             }
 
             // Convert to a float temperature value (in degrees Celsius)
-            s->currTemp = sensor_value * TEMP_CONVERSION_VAL;
+            s->currTemp = sensor_value * TEMP_CONVERSION_VALUE;
             return 1;
         }
     }
 
-    // If HAL_OK was ever NOT received in any of the if statements above, program execution should
-    // proceed to here
-    s->faults |= COMM_FAULT;
-    s->currTemp = NAN;
-    return 0;
+    // If HAL_OK was ever not received in any of the if statements above, program execution should
+    // proceed to here after skipping code above. In this case...
+    s->faults |= COMM_FAULT; //...flag a communication fault...
+    s->currTemp = NAN;       //...set the current temperature reading for the sensor to NAN...
+    return 0;                // and return 0
 }
 
 uint8_t readTempSensors(Sensor sensors[])
 {
     uint8_t sensorsReadSuccessfully = 0;
+
+    // For each expected sensor...
     for (int i = 0; i < SENSOR_COUNT; i++)
     {
-        if (!readTempSensor(&sensors[i]))
+        if (!readTempSensor(&sensors[i])) //...attempt to read the sensor
         {
-            logError(SENSOR_READ_MISSING, i);
+            logError(SENSOR_READ_MISSING, i); // If missing, log an error
         }
         else
         {
-            sensorsReadSuccessfully++;
+            sensorsReadSuccessfully++; // If successful, increment `sensorsReadSuccessfully`
         }
     }
-    return sensorsReadSuccessfully;
+    return sensorsReadSuccessfully; // Return the number of sensors successfully read
 }
 
 void clearFaults(Sensor sensors[])

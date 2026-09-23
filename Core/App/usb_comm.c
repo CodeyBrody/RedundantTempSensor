@@ -4,11 +4,11 @@
 #include "stdio.h"
 #include "string.h"
 
-
-uint8_t txBuf[BUFFER_SIZE];
+uint8_t txBuf[BUFFER_SIZE]; // A buffer to hold messages to send out via USART
 extern UART_HandleTypeDef huart2;
 
-void print_temp_c(float temp)
+/*Prints temperature values*/
+void print_temp(float temp)
 {
     if (isnan(temp))
     {
@@ -30,6 +30,8 @@ void usb_print(const char *message_body)
     return;
 }
 
+/*Practically identical to usb_print, except clearly displays intent that what is printed is a
+ * delimiter*/
 void usb_print_delimiter(const char *delimiter)
 {
     HAL_UART_Transmit(&huart2, (const uint8_t *)delimiter, strlen(delimiter), USART_TX_TIMEOUT_MS);

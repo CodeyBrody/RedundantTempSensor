@@ -1,4 +1,5 @@
 #include "interrupts.h"
+#include "defines.h"
 #include "error_codes.h"
 #include "logging.h"
 #include "string.h"
@@ -7,13 +8,12 @@
 uint8_t rxBuf[BUFFER_SIZE];           // Create a buffer to receive incoming data over USART
 uint8_t rxByte;                       // To hold the next incoming byte
 uint8_t rxIndex = 0;                  // To keep track of the index for the next byte in the rxBuf
-volatile uint16_t interruptError = 0; // A variable to signal both that an error has occured in an
-                                      // interrupt, and which error occured
+volatile uint16_t interruptError = 0; // A variable to both signal that an error has occured in an
+                                      // interrupt, and to signify which error occured
 
-volatile uint8_t fullMessageReceived =
-    0; // A flag to signal to the main program when a full message has been received
+volatile uint8_t fullMessageReceived = 0; // A flag to signal when a full message has been received
 
-void interruptFlagHandler()
+void interruptErrorHandler()
 {
     if (interruptError)
     {
@@ -25,16 +25,22 @@ void interruptFlagHandler()
 
 void setTIMInterrupt()
 {
+    HAL_StatusTypeDef status;
+
     /*Set the timer interrupt to sample the sensor measurements every
      * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC seconds*/
     __HAL_TIM_SET_AUTORELOAD(&htim16, REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC * 10000 - 1);
-    HAL_TIM_Base_Start_IT(&htim16);
+    status = HAL_TIM_Base_Start_IT(&htim16);
+
+    if (status != HAL_OK)
+    {
+        Error_Handler();
+    }
     return;
 }
 
 void setUSARTInterrupt()
 {
-
     HAL_StatusTypeDef status;
 
     /*Set the USART interrupt*/
@@ -57,6 +63,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
         readNow = 1;
     }
+
+    return;
 }
 
 /*Function to handle the USART interrupts*/
@@ -64,7 +72,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
-
         // Receive the entire transmission
         if (rxByte != '\n')
         {
@@ -92,17 +99,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             rxBuf[rxIndex] = '\0';
 
             if (fullMessageReceived == 0)
-            { // If any prior message has already been processed...
+            { // If any prior messages have already been processed...
                 strncpy((char *)usartMessage, (const char *)rxBuf,
                         BUFFER_SIZE); //...store the data from rxBuf in usartMessage...
                 fullMessageReceived = 1;
                 // Reset the rxBuf buffer:
                 rxIndex = 0;
             }
-            else
+            else // If a currently stored message has not yet been processed...
             {
+                //...log an `RX_BUFFER_FULL` error, and reset the rxBuf buffer:
                 interruptError = RX_BUFFER_FULL;
-                // Reset the rxBuf buffer:
                 rxIndex = 0;
             }
         }

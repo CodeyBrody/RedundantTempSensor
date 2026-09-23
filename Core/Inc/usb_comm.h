@@ -8,7 +8,7 @@ void usb_print(const char *message);
 
 void usb_printf_int(const char *message, int arg);
 
-void print_temp_c(float temp);
+void print_temp(float temp);
 
 void usb_print_delimiter(const char *delimiter);
 

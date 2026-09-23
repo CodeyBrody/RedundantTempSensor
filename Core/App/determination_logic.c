@@ -7,7 +7,6 @@
 #include "usb_comm.h"
 #include <math.h>
 
-
 extern UART_HandleTypeDef huart2;
 
 int determineGreatestOutlier(float average, Sensor sensors[], float devOfTemp[]);
@@ -60,13 +59,13 @@ uint8_t invalidateOutOfBounds(Sensor sensors[])
 
 float determineTemp(Sensor sensors[])
 {
-    float devOfTemp[SENSOR_COUNT]; // Stores the deviations from the average of currently valid
-                                   // values, and stores 0 for invalid values
-    float tally = 0;               // Stores the tally of temperature measurements
-    uint8_t validReadingCount = 0; // Stores the count of currently valid temp measurements
-    uint8_t allRemainingReadingsValid =
-        0; // Determines when enough is enough, when all remaining measurements are considered valid
-           // (treated as a boolean variable)
+    float devOfTemp[SENSOR_COUNT]; // Stores the deviations of each sensor's current temp reading
+                                   // from the average of currently valid values, and stores 0 for
+                                   // invalid values
+    float tally = 0; // Stores the sum of currently considered valid temperature measurements
+    uint8_t validReadingCount = 0;         // Stores the count of currently valid temp measurements
+    uint8_t allRemainingReadingsValid = 0; // Determines when all remaining measurements are
+                                           // considered valid (treated as a boolean variable)
     float average = 0; // Stores the current average of the remaining temp values
     float display_temperature = NAN;
 
@@ -94,7 +93,7 @@ float determineTemp(Sensor sensors[])
         return display_temperature;
     }
 
-    /*If only one one currently valid temperature measurement being transmitted, use that one...*/
+    /*If only one one currently valid temperature measurement is available, use that one...*/
     if (validReadingCount == 1)
     {
         display_temperature = sensors[validIndex].currTemp;
@@ -123,8 +122,8 @@ float determineTemp(Sensor sensors[])
         /*If the temp with the biggest deviation is an outlier...*/
         if (fabsf(devOfTemp[biggestOutlierIndex]) >= DISAGREE_THRESHOLD)
         {
-            /*Set the deviation to 0 so it no longer is the biggest and no longer factors into
-             * calculations...*/
+            /*Set the deviation to 0 so it no longer has the biggest deviation and no longer factors
+             * into calculations...*/
             devOfTemp[biggestOutlierIndex] = 0;
             /*Recalculate the average temp without the reading just marked invalid*/
             average = ((average * validReadingCount) - sensors[biggestOutlierIndex].currTemp) /
@@ -134,18 +133,18 @@ float determineTemp(Sensor sensors[])
             logError(READ_MARKED_AS_OUTLIER, biggestOutlierIndex);
             validReadingCount--;
             orderInvalidated[validReadingCount] = biggestOutlierIndex;
-            /*If there is only one reading left standing, after the second to last one was marked an
-             * 'outlier'...*/
+            /*If there is only one reading left standing after the second to last one was marked as
+             * an 'outlier'...*/
             if ((validReadingCount == 1) && (SENSOR_COUNT > 1))
             {
-                /*All of the temperature readings are "outliers" of each other...*/
+                /*...then all of the temperature readings are "outliers" of each other...*/
                 biggestOutlierIndex = 0;
                 /*Find the last, unmarked reading...*/
                 while (!devOfTemp[biggestOutlierIndex])
                 {
                     biggestOutlierIndex++;
                 }
-                /*...and mark it as also an invalid outlier*/
+                /*...and also mark it as an outlier*/
                 sensors[biggestOutlierIndex].faults =
                     (sensors[biggestOutlierIndex].faults | IS_OUTLIER);
                 /*Store it as the last value 'invalidated' as an outlier...*/
@@ -157,7 +156,7 @@ float determineTemp(Sensor sensors[])
                 /*Mark all OOB (Out of Bounds) readings*/
                 invalidateOutOfBounds(sensors);
                 /*DESIGN CHOICE...display (as the display temperature) the last value "invalidated"
-                 * that is within bounds..."*/
+                 * that is within the sensor's specified operating range*/
                 for (int i = 0; i < sizeof(orderInvalidated); i++)
                 {
                     if ((sensors[orderInvalidated[i]].faults & ABOVE_BOUNDS ||
@@ -181,11 +180,11 @@ float determineTemp(Sensor sensors[])
         }
     }
 
-    /*All Outliers should have been removed. Check for reads out of the documented sensor range
-     * bounds...*/
+    /*All Outliers should have been removed. Check for readings outside of the documented sensor
+     * range bounds...*/
     if (invalidateOutOfBounds(sensors))
-    { // If there are valid readings after invalidating out of bound measurements (return != 0)...
-        // Then return the average of all the still-valid sensors reading measurements
+    { // If valid readings remain after invalidating out of bounds readings (return != 0)...
+        // ...then return the average of all the still-valid sensors reading measurements
         display_temperature = findAverageValidTemp(sensors);
         return display_temperature;
     }
@@ -209,12 +208,7 @@ int determineGreatestOutlier(float average, Sensor sensors[], float devOfTemp[])
         }
         else
         {
-            int sign = 1;
-            if (average - sensors[i].currTemp < 0)
-            {
-                sign = -1;
-            }
-            devOfTemp[i] = (average - sensors[i].currTemp) * sign;
+            devOfTemp[i] = fabsf(average - sensors[i].currTemp);
             if (devOfTemp[biggestIndex] < devOfTemp[i])
             {
                 biggestIndex = i;

@@ -13,15 +13,16 @@ Sensor status is communicated through LEDs and an active buzzer, while timestamp
 This project includes code for **a redundant temperature sensor system** to be run on an STM32-L476RG microcontroller.
 
 This system:
-* Periodically samples multiple temperature sensors over a shared I²C bus, utilizing a timer interrupt,
-* Detects sensor communication failures.
-* Detects temperature measurements outside the sensor's specified operating range.
-* Identifies measurements that deviate significantly from the other measurements received.
-* Uses the results from the above analyses to determine a final display temperature.
-* Drives status LEDs through a pair of 74HC595 shift registers.
-* Activates an audible buzzer when sensor measurements are first flagged or go missing.
-* Maintains a real-time clock (RTC) for timestamping measurements and errors.
-* Communicates timestamped measurements and fault information to a host computer over USART.
+
+- Periodically samples multiple temperature sensors over a shared I²C bus, utilizing a timer interrupt,
+- Detects sensor communication failures.
+- Detects temperature measurements outside the sensor's specified operating range.
+- Identifies measurements that deviate significantly from the other measurements received.
+- Uses the results from the above analyses to determine a final display temperature.
+- Drives status LEDs through a pair of 74HC595 shift registers.
+- Activates an audible buzzer when sensor measurements are first flagged or go missing.
+- Maintains a real-time clock (RTC) for timestamping measurements and errors.
+- Communicates timestamped measurements and fault information to a host computer over USART.
 
 The project is intended as a demonstration of embedded C programming, peripheral communication, and redundant-sensor decision logic.
 
@@ -29,33 +30,33 @@ The project is intended as a demonstration of embedded C programming, peripheral
 
 ## Topics/Technologies Involved
 
-* Embedded C
-* STM32L4 microcontrollers
-* STM32 HAL
-* TMP102 temperature sensors
-* I²C communication
-* SPI communication
-* USART communication
-* RTC timestamping
-* Timer interrupts
-* USART receive interrupts
-* Fault detection
-* Redundant sensor processing
-* CMake
-* Ninja
-* ARM GNU Toolchain
-* Visual Studio Code
-* Cortex-Debug
-* ST-LINK
+- Embedded C
+- STM32L4 microcontrollers
+- STM32 HAL
+- TMP102 temperature sensors
+- I²C communication
+- SPI communication
+- USART communication
+- RTC timestamping
+- Timer interrupts
+- USART receive interrupts
+- Fault detection
+- Redundant sensor processing
+- CMake
+- Ninja
+- ARM GNU Toolchain
+- Visual Studio Code
+- Cortex-Debug
+- ST-LINK
 
---- 
+---
 
 ## System Architecture
 
 > **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accommodate a variable number of temperature sensors, the default settings and code of the software overall expect 3 temperature sensors. This setup is used in the diagrams and explanations that follow.
-> The astute engineer can discern how to modify the hardware (and what software constants and lines of code may need to be changed) to use the software with other numbers of sensors. 
+> The astute engineer can discern how to modify the hardware (and what software constants and lines of code may need to be changed) to use the software with other numbers of sensors.
 
-The system is intended to be loaded onto an STM32-L476RG microcontroller. TMP102 digital temperature sensors are connected to the microcontroller via a shared I2C bus, and are polled at fixed intervals. 
+The firmware is intended to run on an STM32-L476RG microcontroller. TMP102 digital temperature sensors are connected to the microcontroller via a shared I2C bus, and are polled at fixed intervals.
 
 The received sensor readings are then analyzed by the firmware, and a final 'display temperature' is determined. Based on both the readings from the sensors and the results of the determination logic running on the microcontroller, LED indicators associated with each sensor are then updated, and data is sent to a host computer via a USART connection.
 
@@ -68,13 +69,14 @@ The following diagram visualizes connections between different physical componen
 ## Hardware
 
 ### Main Components
-* STM32 Nucleo-L476RG
-* 3 × TMP102 temperature sensors
-* 74HC595 shift register(s)
-* Active buzzer
-* Red, yellow, and green LEDs
-* 220 Ω resistors
-* USB / micro-USB connection to host computer
+
+- STM32 Nucleo-L476RG
+- 3 × TMP102 temperature sensors
+- 74HC595 shift register(s)
+- Active buzzer
+- Red, yellow, and green LEDs
+- 220 Ω resistors
+- USB / micro-USB connection to host computer
 
 ### Sensor Configuration
 
@@ -139,10 +141,11 @@ Core/
 │   ├── logging.h
 │   ├── rtc.h
 │   ├── sensor.h
-│   └── usb_comm.h
+│   ├── usb_comm.h
 │   └── STM32/CubeMX-generated / included header files
 │
 └── Src/
+    ├── main.c
     └── STM32/CubeMX-generated source
 ```
 
@@ -261,11 +264,13 @@ Measurements outside those limits are marked with:
 ```text
 ABOVE_BOUNDS
 ```
+
 and
 
 ```text
 BELOW_BOUNDS
 ```
+
 respectively.
 
 ### 4. Final Temperature
@@ -274,10 +279,11 @@ In light of the results of the aforementioned analyses, a final display temperat
 
 Depending on the available sensor readings, the firmware may:
 
-* Average multiple valid sensors.
-* Use the only remaining valid sensor (if only one sensor reading remains valid).
-* Choose the reading from one sensor to display when all readings disagree, or choose an average of a number of readings when all readings have been flagged.
-* Return `NAN` when no usable readings are available.
+- Average multiple valid sensors
+- Use the only remaining valid sensor (if only one sensor reading remains valid)
+- Choose a reading from one sensor to display (when all readings disagree)
+- Average multiple potentially invalid readings to display (when all readings have been marked as potentially invalid or questionable)
+- Return `NAN` when no sensor readings are available
 
 The exact determination logic is implemented in `determination_logic.c`.
 
@@ -294,7 +300,7 @@ Sensor faults are represented as a bitmask, allowing multiple fault conditions t
 | `BELOW_BOUNDS` | Temperature reading below the configured lower bound              |
 | `IS_OUTLIER`   | Reading was rejected because it disagreed with the other readings |
 
-Because these are bit flags, multiple faults can be simultaneously associated with one sensor (e.g. a reading can be both above bounds and an outlier). 
+Because these are bit flags, multiple faults can be simultaneously associated with one sensor (e.g. a reading can be both above bounds and an outlier).
 
 ---
 
@@ -312,7 +318,8 @@ Messages sent from the microcontroller to a host computer via USART use the foll
 <header><message body>\r\n
 ```
 
-The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types: 
+The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types:
+
 - Data (`D: `)
 - Error (`E: `)
 
@@ -333,7 +340,7 @@ D: timestamp, display temperature, sensor 1 temperature, sensor 2 temperature, s
 Example:
 
 ```text
-D: 09/10/2026 10:42:18, 24.75, 24.75, 24.69, 24.81, , , 
+D: 09/10/2026 10:42:18, 24.75, 24.75, 24.69, 24.81, , ,
 ```
 
 A missing temperature is represented by:
@@ -343,6 +350,7 @@ A missing temperature is represented by:
 ```
 
 A description of the different pieces of information follows:
+
 - Timestamp - The timestamp for the specific batch of data
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
 - Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--")
@@ -369,23 +377,44 @@ Error messages begin with the error message header:
 E:
 ```
 
-and include a timestamp followed by a message describing the error or situation that occurred that led to the sending of the message. Some exapmples include:
+and include a timestamp followed by the error code (a unique three digit number enclosed in square brackets []) and a message describing the error or situation that occurred that led to the sending of the message. Some examples include:
 
 ```text
-E: 09/10/2026 10:42:18 Sensor 1 Reading Missing.
+E: 09/10/2026 10:42:18 [201] Sensor 1 Reading Missing.
 ```
 
 ```text
-E: 09/10/2026 10:42:20 Sensor 2 reading marked invalid as an outlier.
+E: 09/10/2026 10:42:20 [303] Sensor 2 reading marked invalid as an outlier.
 ```
 
 ```text
-E: 09/10/2026 10:42:22 All Sensor Readings Missing.
+E: 09/10/2026 10:42:22 [200] All Sensor Readings Missing.
 ```
 
- They are also terminated by carriage return and newline characters.
+They are also terminated by carriage return and newline characters. A table of different errors and their error codes is shown below.
+
+| Error Code |                           Error |
+| ---------- | ------------------------------: |
+| 100        |          `SENSORS_NOT_DETECTED` |
+| 200        |      `ALL_SENSOR_READS_MISSING` |
+| 201        |           `SENSOR_READ_MISSING` |
+| 300        |      `ALL_READS_MARKED_INVALID` |
+| 301        |             `READ_ABOVE_BOUNDS` |
+| 302        |             `READ_BELOW_BOUNDS` |
+| 303        |        `READ_MARKED_AS_OUTLIER` |
+| 400        |               `NOT_ENOUGH_LEDS` |
+| 500        | `UNRECOGNIZED_COMMAND_RECEIVED` |
+| 501        |          `RTC_FORMATTING_ERROR` |
+| 502        |    `RTC_INVALID_DATETIME_ERROR` |
+| 503        |                 `RTC_SET_ERROR` |
+| 504        |                `RX_BUFFER_FULL` |
+| 505        |            `RX_BUFFER_OVERFLOW` |
 
 ### Communication to the Microcontroller
+
+The firmware maintains a single pending received message. If a complete message has not yet been processed by the time another message is fully received, the additional message is discarded and an RX_BUFFER_FULL error is reported, along with a request for the message to be resent.
+
+Messages exceeding the receive buffer size generate an RX_BUFFER_OVERFLOW error. Once the maximum amount of characters have been received (by default 99 characters), the error is generated, the buffer is reset, and any remaining bytes are then processed as being part of a new message.
 
 The only current command the firmware has been set up to handle via USART is setting the microcontroller's RTC, the process of which is explained below.
 
@@ -405,20 +434,31 @@ Example:
 2026/09/10 10:45:30
 ```
 
-This complete date and time data should be terminated by a carriage return and/or a newline character. 
+This complete date and time data should be terminated by a carriage return and/or a newline character.
 
-After receiving the date/time value, the firmware uses it to configure the STM32 RTC. If the supplied value is incorrectly formatted, the firmware reports an RTC formatting error and requests the time again.
+After receiving the date/time value, the firmware uses it to configure the STM32 RTC. If an error occurs during this process, the firmware reports an error and requests the time again. See the [RTC Errors](#rtc-errors) section below.
 
 #### Resetting the RTC
 
-The time may still be set after the first exchange of data if necessary. 
+The time may still be set after the first exchange of data if necessary.
 
-If the microcontroller received the command:
+If the microcontroller receives the command:
 
 ```text
 SET_TIME\r\n
 ```
-then the next data received will be treated as the date, in the same format as described above. Once that date is received, that data will automatically be used to set the RTC. Again, if the supplied value is incorrectly formatted, the firmware will report an RTC formatting error and request the time again.
+
+then the microcontroller will once again send a "`SEND_TIME\r\n`" message, and the next data received will be treated as the date, in the same format as described above. Once that date is received, that data will automatically be used to set the RTC. Again, if the supplied value is incorrectly formatted, the firmware will report an RTC formatting error and request the time again.
+
+#### RTC Errors
+
+The following are errors that may occur while setting the RTC:
+
+| Error                        | Description                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `RTC_FORMATTING_ERROR`       | Expected data to set the RTC, but received data was incorrectly formatted to do so |
+| `RTC_INVALID_DATETIME_ERROR` | An invalid date was received as input to set the RTC                               |
+| `RTC_SET_ERROR`              | An error occurred while attempting to set the parsed RTC time or date              |
 
 ---
 
@@ -428,11 +468,11 @@ then the next data received will be treated as the date, in the same format as d
 
 The following software must be installed:
 
-* Visual Studio Code
-* CMake
-* Ninja
-* ARM GNU Toolchain (`arm-none-eabi-gcc`)
-* Git
+- Visual Studio Code
+- CMake
+- Ninja
+- ARM GNU Toolchain (`arm-none-eabi-gcc`)
+- Git
 
 The **ARM GNU Toolchain must be available on the system `PATH`**, as the project's CMake toolchain file expects to locate the ARM compiler using the `arm-none-eabi-` command prefix.
 
@@ -508,9 +548,9 @@ The project uses the **ST-LINK** programmer/debugger integrated into the **STM32
 
 ### Prerequisites
 
-* Connect the Nucleo-L476RG to the computer via USB.
-* Install the **Cortex-Debug** VS Code extension.
-* Build either the **Debug** or **Release** configuration.
+- Connect the Nucleo-L476RG to the computer via USB.
+- Install the **Cortex-Debug** VS Code extension.
+- Build either the **Debug** or **Release** configuration.
 
 ### Debug Build
 
@@ -546,12 +586,12 @@ Core/Inc/defines.h
 For example:
 
 ```c
-#define DELTA 2
+#define REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC 2
 #define DISAGREE_THRESHOLD 2.0
 #define BUFFER_SIZE 100
 ```
 
-`DELTA` controls the desired interval between sensor-reading cycles.
+`REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC` controls the desired interval between sensor-reading cycles.
 
 The default application configuration expects:
 
@@ -573,11 +613,11 @@ Changing the number of sensors may require corresponding changes to the hardware
 
 ### Host Computer Software
 
-This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure it's RTC.
+This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure the RTC.
 
 To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
 
-If you would like to create your own, feel free to take a look at the **Communication Protocol** section above to see how data communicated over USART is structured.
+If you would like to create your own, feel free to take a look at the [Communication Protocol](#communication-protocol) section above to see how data communicated over USART is structured.
 
 ### Timing
 
@@ -585,9 +625,9 @@ Sensor sampling is initiated by a timer interrupt and processed by the main loop
 
 ### Validation and Testing
 
-While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware either (see the License section below for more information).
+While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware either (see the [License](#license) section below for more information).
 
-Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for any use by anyone. Contact the [@CodeyBrody](https://github.com/CodeyBrody) with questions.
+Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for any use by anyone. Contact [@CodeyBrody](https://github.com/CodeyBrody) with questions.
 
 ---
 
@@ -595,11 +635,10 @@ Currently no warranties are given for fitness for any particular purpose, and th
 
 Potential future development opportunities include:
 
-* Documented unit and system tests
-* Making it easier/more straightforward to change the code to use other than three sensors. 
-* More comprehensive RTC input validation.
-* Additional USART commands.
-* Factor additional clues of suspicious readings (e.g. a huge rate of change) into determination logic.
+- Documented unit and system tests
+- Making it easier/more straightforward to change the code to use other than three sensors.
+- Additional USART commands.
+- Factor additional clues of suspicious readings (e.g. a huge rate of change) into determination logic.
 
 ---
 

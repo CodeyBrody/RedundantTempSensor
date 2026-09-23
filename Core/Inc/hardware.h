@@ -11,6 +11,8 @@
 #define LATCH_GPIO_PORT GPIOB
 #define LATCH_PIN GPIO_PIN_4
 
+extern const uint8_t TMP102_ADDRESSES[];
+
 /*DEFINE LED NUMBERS TO BE USED IN HARDWARE.C*/
 extern const int SENSOR_1_LED_G;
 extern const int SENSOR_1_LED_Y;

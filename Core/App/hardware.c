@@ -4,7 +4,7 @@ const uint8_t TEMP_REGISTER_ADDRESS = 0;
 const float TEMP_CONVERSION_VAL = 0.0625;
 
 /*Addresses being used by the sensors*/
-const uint8_t SENSOR_ADDRESSES[] = {(0x48 << 1), (0x49 << 1), (0x4A << 1)};
+const uint8_t TMP102_ADDRESSES[] = {(0x48 << 1), (0x49 << 1), (0x4A << 1), (0x4B << 1)};
 
 /*DEFINE LED NUMBERS TO BE USED HERE:👇*/
 const int SENSOR_1_LED_G = 0;

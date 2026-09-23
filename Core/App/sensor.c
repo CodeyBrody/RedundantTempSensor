@@ -9,7 +9,8 @@
 
 extern uint8_t TEMP_REGISTER_ADDRESS;
 extern float TEMP_CONVERSION_VAL;
-extern uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
+const uint8_t TMP102_ADDRESSES[];
+uint8_t SENSOR_ADDRESSES[SENSOR_COUNT];
 
 uint8_t I2CBuf[2]; // Buffer to send and receive data to/from the sensors via the I2C bus.
 

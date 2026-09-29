@@ -206,10 +206,10 @@ USART Receive Interrupt
       ▼
 Receive bytes into buffer
       │
-      └── If message terminator received, or if error occurs
-      │               │
-      │               ▼
-      │ Set flags/errors based on message received or error that occurred
+      └── If message terminator received or error occurs
+      │                       │
+      │                       ▼
+      │         Set flags/errors based on message received or error that occurred
       │
       ▼
 Main Loop
@@ -223,13 +223,13 @@ This keeps relatively time-consuming operations such as sensor communication, lo
 
 ## Sensor Redundancy and Fault Detection
 
-Each sensor is represented by a `Sensor` structure containing its I²C address, current temperature, fault flags, the previous reading's fault flags, and associated LED assignments.
+Each sensor is represented by a `Sensor` structure containing its I²C address, current (most recent) temperature reading value, fault flags, the previous reading's fault flags, and data associated with the LEDs related to that sensor's measurements.
 
 The firmware evaluates sensor readings in several stages.
 
 ### 1. Communication Check
 
-If an I²C transaction fails, the sensor is marked with a communication fault:
+If an I²C communication fails, the sensor is marked with a communication fault:
 
 ```text
 COMM_FAULT
@@ -239,21 +239,21 @@ Its current temperature is treated as unavailable.
 
 ### 2. Outlier Detection
 
-Existing sensor readings are compared against one another.
+If more than one reading is available for consideration, then existing sensor readings are compared against one another.
 
-If a reading differs from the current average by at least the configured disagreement threshold, it is marked as an outlier:
+If a reading's value differs from the current average by at least the configured disagreement threshold, it is marked as an outlier:
 
 ```text
 IS_OUTLIER
 ```
 
-The average is then recalculated using the remaining valid readings.
+The average is then recalculated using the remaining valid reading values.
 
-This process continues until the remaining readings no longer disagree beyond the configured threshold.
+This process continues until the remaining reading values no longer disagree beyond the configured threshold.
 
 ### 3. Temperature Bounds
 
-After outlier processing, readings are checked against the configured upper and lower temperature bounds (by default set to the manufacturer's specified operating range for the sensors).
+After outlier processing, temperature reading values are checked against the configured upper and lower temperature bounds (by default set to the manufacturer's specified operating range for the sensors).
 
 Measurements outside those limits are marked with:
 
@@ -267,19 +267,19 @@ and
 BELOW_BOUNDS
 ```
 
-respectively.
+respectively. Note that, since outlier processing only occurs if more than one reading value is available, yet even a single reading can be above or below the specified sensor operating range, this bounds-checking process occurs even if there is only one reading value available (and no outlier detection has occurred).
 
 ### 4. Final Temperature
 
-In light of the results of the aforementioned analyses, a final display temperature is determined.
+In light of the results of the aforementioned analyses and the sensor readings available, a final display temperature is determined.
 
-Depending on the available sensor readings, the firmware may:
+The firmware may:
 
-- Average multiple valid sensors
-- Use the only remaining valid sensor (if only one sensor reading remains valid)
-- Choose a reading from one sensor to display (when all readings disagree)
-- Average multiple potentially invalid readings to display (when all readings have been marked as potentially invalid or questionable)
-- Return `NAN` when no sensor readings are available
+- Average multiple valid sensors.
+- Use the only remaining sensor reading value (if only one sensor reading remains unflagged).
+- Choose a reading from one sensor to display (when all readings are outliers of each other).
+- Average multiple flagged readings to display (when all readings have been flagged as missing or as potentially invalid or questionable).
+- Return `NAN` when no sensor readings are available.
 
 The exact determination logic is implemented in `determination_logic.c`.
 
@@ -292,8 +292,8 @@ Sensor faults are represented as a bitmask, allowing multiple fault conditions t
 | Flag           | Meaning                                                           |
 | -------------- | ----------------------------------------------------------------- |
 | `COMM_FAULT`   | Communication with the sensor failed                              |
-| `ABOVE_BOUNDS` | Temperature reading exceeded the configured upper bound           |
-| `BELOW_BOUNDS` | Temperature reading below the configured lower bound              |
+| `ABOVE_BOUNDS` | Temperature reading above the sensor's specified upper bound      |
+| `BELOW_BOUNDS` | Temperature reading below the sensor's specified lower bound      |
 | `IS_OUTLIER`   | Reading was rejected because it disagreed with the other readings |
 
 Because these are bit flags, multiple faults can be simultaneously associated with one sensor (e.g. a reading can be both above bounds and an outlier).
@@ -304,14 +304,14 @@ Because these are bit flags, multiple faults can be simultaneously associated wi
 
 The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200. The STM32's USART connection is exposed to the host computer through the Nucleo board's USB connection.
 
-Messages can be sent either to or from the microcontroller, although the only task intended to be done through sending data to the microcontroller is setting the RTC (see later in this section).
+Messages can be sent either to or from the microcontroller (although the only task currently intended to be done through sending data to the microcontroller is setting the RTC (see (Communication to the Microcontroller)[#communication-to-the-microcontroller] later in this section)).
 
 ### Communication From the Microcontroller
 
 Messages sent from the microcontroller to a host computer via USART use the following general structure:
 
 ```text
-<header><message body>\r\n
+<header><timestamp><message body>\r\n
 ```
 
 The **header** consists of a letter identifying the type of message being transmitted, a colon, and a space. There are two different headers corresponding to the different message types:
@@ -347,9 +347,9 @@ A missing temperature is represented by:
 
 A description of the different pieces of information follows:
 
-- Timestamp - The timestamp for the specific batch of data
-- Display Temperature - The temperature returned by the microcontroller logic after analyzing the individual temperature sensor read values
-- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--")
+- Timestamp - The timestamp for the specific batch of data.
+- Display Temperature - The temperature returned by the microcontroller logic after analyzing the available individual temperature sensor read values.
+- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--").
 - Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading.
 
 #### Fault Symbols
@@ -363,14 +363,14 @@ Sensor fault strings use the following symbols:
 | `-`     | Below configured temperature range    |
 | `+`     | Above configured temperature range    |
 
-Multiple symbols can appear together when a sensor has multiple fault flags. Or, a string of fault flags can be simply an empty string if no flags have been marked for that sensor reading.
+Multiple symbols can appear together when a sensor has multiple fault flags. Or, a string of fault flags can simply be an empty string if no flags have been marked for that sensor reading.
 
 #### Error Messages
 
 Error messages begin with the error message header:
 
 ```text
-E:
+E: 
 ```
 
 and include a timestamp followed by the error code (a unique three digit number enclosed in square brackets []) and a message describing the error or situation that occurred that led to the sending of the message. Some examples include:
@@ -405,6 +405,7 @@ They are also terminated by carriage return and newline characters. A table of d
 | 503        |                 `RTC_SET_ERROR` |
 | 504        |                `RX_BUFFER_FULL` |
 | 505        |            `RX_BUFFER_OVERFLOW` |
+| 000        |            `UNRECOGNIZED_ERROR_RECEIVED` |
 
 ### Communication to the Microcontroller
 
@@ -412,13 +413,13 @@ They are also terminated by carriage return and newline characters. A table of d
 
 The firmware maintains a single pending received message. If a complete message has not yet been processed by the time another message is fully received, the additional message is discarded and an `RX_BUFFER_FULL` error is reported, along with a request for the message to be resent.
 
-Messages exceeding the receive buffer size generate an `RX_BUFFER_OVERFLOW` error. Once the maximum amount of characters have been received (by default 99 characters, not including the terminating `\n`), the error is generated, the buffer is reset, and any remaining bytes are then processed as being part of a new message.
+Messages exceeding the receive buffer size generate an `RX_BUFFER_OVERFLOW` error. Once the maximum number of characters have been received (by default 100 characters) without having received the terminating `\n`, the error is generated, the buffer is reset, and any remaining bytes are then processed as being part of a new message.
 
-Messages are terminated by a LF (`\n`), which is not included in the count towards the 99 max character limit for messages. CR (`\r`) characters are ignored (and do not count towards the 99 max character limit for messages either), allowing either LF (`\n`) or CRLF (`\r\n`) line endings to terminate a message.
+Messages are terminated by a LF (`\n`), which is included in the count towards the 100 max character limit for messages. CR (`\r`) characters are ignored (and do not count towards the 100 max character limit for messages), allowing either LF (`\n`) or CRLF (`\r\n`) line endings to terminate a message.
 
-Messages that are not recognized as a valid command generate an `UNRECOGNIZED_COMMAND_RECEIVED` error, unless the system is in a state expecting to receive date/time data via USART, in which case other errors may be logged in the case of invalid or incorrectly formatted data.
+Messages that are not recognized as a valid command generate an `UNRECOGNIZED_COMMAND_RECEIVED` error, unless the system is in a state expecting to receive date/time data via USART, in which case different errors are logged if the data is considered invalid or incorrectly formatted in light of what the system is expecting.
 
-The only current command the firmware has been set up to recognize and handle via USART is setting the microcontroller's RTC, the process of which is explained below.
+The only command the firmware has currently been set up to recognize and handle via USART is setting the microcontroller's RTC, the process of which is explained below.
 
 #### Initial Setting of the RTC Via USART Communication
 
@@ -436,7 +437,7 @@ Example:
 2026/09/10 10:45:30
 ```
 
-This complete date and time data should be terminated by a carriage return and/or a newline character.
+This complete date and time data should be terminated by a newline character.
 
 After receiving the date/time value, the firmware uses it to configure the STM32 RTC. If an error occurs during this process, the firmware reports an error and requests the time again. See the [RTC Errors](#rtc-errors) section below.
 
@@ -456,11 +457,11 @@ then the microcontroller will once again send a "`SEND_TIME\r\n`" message, and t
 
 The following are errors that may occur while setting the RTC:
 
-| Error                        | Description                                                                        |
-| ---------------------------- | ---------------------------------------------------------------------------------- |
-| `RTC_FORMATTING_ERROR`       | Expected data to set the RTC, but received data was incorrectly formatted to do so |
-| `RTC_INVALID_DATETIME_ERROR` | An invalid date was received as input to set the RTC                               |
-| `RTC_SET_ERROR`              | An error occurred while attempting to set the parsed RTC time or date              |
+| Error                        | Description                                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `RTC_FORMATTING_ERROR`       | Expected data to set the RTC, but the received data was incorrectly formatted to do so                     |
+| `RTC_INVALID_DATETIME_ERROR` | An invalid date was received as input to set the RTC (e.g. February 30th)                                  |
+| `RTC_SET_ERROR`              | An error occurred while attempting to set the RTC using the valid, correctly formatted time or date        |
 
 ---
 
@@ -468,7 +469,7 @@ The following are errors that may occur while setting the RTC:
 
 ### Prerequisites
 
-The following software must be installed:
+To use the following build method, the following software must be installed:
 
 - Visual Studio Code
 - CMake
@@ -497,6 +498,8 @@ Clone the repository and navigate to the project directory:
 git clone https://github.com/CodeyBrody/RedundantTempSensor.git
 cd RedundantTempSensor
 ```
+
+Two options are to (Build with VS Code)[#build-with-vs-code], or to (Build from the Command Line)[#build-from-the-command-line]. The steps of both methods are outlined below.
 
 ### Build with VS Code
 
@@ -532,7 +535,7 @@ The CMake presets automatically configure the project to use the Ninja build sys
 
 Both Debug and Release builds produce an **ELF executable**.
 
-The Debug build includes debugging information and is configured for development and debugging. The Release build is optimized for size and does not include debugging information.
+> **Note:** The Debug build includes debugging information and is configured for development and debugging. The Release build is optimized for size and does not include debugging information.
 
 Generated build files are stored under:
 
@@ -571,12 +574,6 @@ Cortex-Debug will program the Debug ELF through ST-LINK and start a debugging se
 
 Cortex-Debug will program the Release ELF through ST-LINK and start the firmware.
 
-```text
-build/Release/RedundantTempSensor.elf
-```
-
-> **Note:** The Release build is optimized for size and does not include debugging information, so source-level debugging is limited compared with the Debug build.
-
 ## Project Configuration
 
 Several application-level constants are defined in:
@@ -601,7 +598,17 @@ The default application configuration expects:
 3 sensors
 ```
 
-and three sets of RGB status LEDs.
+and three sets of red, green and yellow status LEDs.
+
+---
+
+## Host Computer Software
+
+This software was originally intended to work in tandem with logging/display software on the host computer connected via USART to the microcontroller. While messages sent via USART can be viewed in a general serial monitor, this program relies on receiving data from the host computer (either sent by program running on the computer or receiving data sent by a human) to configure the RTC.
+
+To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
+
+If you would like to create your own, feel free to take a look at the [Communication Protocol](#communication-protocol) section above to see how data communicated over USART is structured.
 
 ---
 
@@ -613,23 +620,15 @@ Although portions of the sensor-processing logic operate on a sensor array, the 
 
 Changing the number of sensors may require corresponding changes to the hardware and code.
 
-### Host Computer Software
-
-This software is meant to work in tandem with a logging/display software on the host computer connected via USART to the microcontroller. While messages sent via USART can be viewed in a general serial monitor, this program relies on interacting with a software on the host computer (or receiving formatted data sent by a human) to configure the RTC.
-
-To view one such program, feel free to check out the repository [here](https://github.com/CodeyBrody/TMP102RTSProjectLDSoftware.git).
-
-If you would like to create your own, feel free to take a look at the [Communication Protocol](#communication-protocol) section above to see how data communicated over USART is structured.
-
 ### Timing
 
-Sensor sampling is initiated by a timer interrupt and processed by the main loop. The configured interval represents the desired interval between reading cycles rather than a guarantee that every cycle will begin at an exact wall-clock time.
+Sensor sampling is initiated by a timer interrupt and processed by the main loop. The configured interval represents the desired, approximate interval between reading cycles rather than a guarantee that every cycle will begin at an exact wall-clock time.
 
 ### Validation and Testing
 
-While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware either (see the [License](#license) section below for more information).
+While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware (see the [License](#license) section below for more information).
 
-Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for any use by anyone. Contact [@CodeyBrody](https://github.com/CodeyBrody) with questions.
+Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for just any use by anyone. Contact [@CodeyBrody](https://github.com/CodeyBrody) with questions.
 
 ---
 
@@ -638,9 +637,9 @@ Currently no warranties are given for fitness for any particular purpose, and th
 Potential future development opportunities include:
 
 - Documented unit and system tests
-- Making it easier/more straightforward to change the code to use other than three sensors.
+- Making it easier/more straightforward to change the code to use a variable number of sensors.
 - Additional USART commands.
-- Factor additional clues of suspicious readings (e.g. a huge rate of change) into determination logic.
+- Factor additional factors that could indicate questionable readings (e.g. a sudden, large increase or decrease in a sensor reading's value) into determination logic.
 
 ---
 
@@ -654,4 +653,4 @@ See the applicable license files and copyright notices included with those compo
 
 At this time, no single license is intended to supersede the individual licenses applicable to vendor-provided or third-party components.
 
-> NOTE: Parts of this README.md file were created using ChatGPT, mixed with content from and edited by @CodeyBrody. Parts of this README.md may be incorrect or incomplete, or may become outdated. If you discover any such issues, feel free to open a pull request, or contact the owner of this repository. (Who, although this is written in the third person, did indeed write this himself.)
+> NOTE: Parts of this README.md file were created using ChatGPT, mixed with content from and edited by @CodeyBrody. Parts of this README.md may be incorrect or incomplete, or may become outdated. If you discover any such issues, feel free to open a pull request, or contact the owner of this repository. (Who, although writing in the third person, did indeed write this note himself. 😉)

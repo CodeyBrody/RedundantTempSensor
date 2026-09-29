@@ -104,7 +104,7 @@ The current implementation uses the LEDs to indicate the sensor's state:
 | Questionable / flagged reading          | Yellow         |
 | Communication failure / missing reading | Red            |
 
-The LEDs are controlled through a 74HC595 shift register using SPI.
+The LEDs are controlled through daisy-chained 74HC595 shift registers using SPI.
 
 ### Buzzer
 

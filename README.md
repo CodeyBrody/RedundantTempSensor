@@ -90,9 +90,7 @@ The default firmware configuration expects three TMP102 sensors using the follow
 
 The sensors share the same I²C bus.
 
-For more information on TMP102 temperature sensors (including how to assign the above addresses to different sensors, their specified operating range, etc.) feel free to explore the datasheet available at this (webpage)[https://www.ti.com/product/TMP102] from Texas Instruments.
-
-The firmware's redundancy logic is designed to work with a sensor array, although the overall application and hardware configuration currently expect three sensors.
+For more information on TMP102 temperature sensors (including how to assign the above addresses to different sensors) feel free to explore the datasheet available at this [page](https://www.ti.com/product/TMP102) from Texas Instruments' website.
 
 ### Status LEDs
 

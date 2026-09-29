@@ -574,6 +574,8 @@ Cortex-Debug will program the Debug ELF through ST-LINK and start a debugging se
 
 Cortex-Debug will program the Release ELF through ST-LINK and start the firmware.
 
+---
+
 ## Project Configuration
 
 Several application-level constants are defined in:
@@ -654,3 +656,4 @@ See the applicable license files and copyright notices included with those compo
 At this time, no single license is intended to supersede the individual licenses applicable to vendor-provided or third-party components.
 
 > NOTE: Parts of this README.md file were created using ChatGPT, mixed with content from and edited by @CodeyBrody. Parts of this README.md may be incorrect or incomplete, or may become outdated. If you discover any such issues, feel free to open a pull request, or contact the owner of this repository. (Who, although writing in the third person, did indeed write this note himself. 😉)
+

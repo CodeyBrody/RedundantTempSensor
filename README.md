@@ -370,13 +370,13 @@ Multiple symbols can appear together when a sensor has multiple fault flags. Or,
 Error messages begin with the error message header:
 
 ```text
-E: 
+E:
 ```
 
 and include a timestamp followed by the error code (a unique three digit number enclosed in square brackets []) and a message describing the error or situation that occurred that led to the sending of the message. Some examples include:
 
 ```text
-E: 09/10/2026 10:42:18 [201] Sensor 1 Reading Missing.
+E: 09/10/2026 10:42:18 [201] Sensor 1 reading missing.
 ```
 
 ```text
@@ -384,7 +384,7 @@ E: 09/10/2026 10:42:20 [303] Sensor 2 reading marked invalid as an outlier.
 ```
 
 ```text
-E: 09/10/2026 10:42:22 [200] All Sensor Readings Missing.
+E: 09/10/2026 10:42:22 [200] All sensor readings missing..
 ```
 
 They are also terminated by carriage return and newline characters. A table of different errors and their error codes is shown below.
@@ -405,7 +405,7 @@ They are also terminated by carriage return and newline characters. A table of d
 | 503        |                 `RTC_SET_ERROR` |
 | 504        |                `RX_BUFFER_FULL` |
 | 505        |            `RX_BUFFER_OVERFLOW` |
-| 000        |            `UNRECOGNIZED_ERROR_RECEIVED` |
+| 000        |   `UNRECOGNIZED_ERROR_RECEIVED` |
 
 ### Communication to the Microcontroller
 
@@ -457,11 +457,11 @@ then the microcontroller will once again send a "`SEND_TIME\r\n`" message, and t
 
 The following are errors that may occur while setting the RTC:
 
-| Error                        | Description                                                                                                |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `RTC_FORMATTING_ERROR`       | Expected data to set the RTC, but the received data was incorrectly formatted to do so                     |
-| `RTC_INVALID_DATETIME_ERROR` | An invalid date was received as input to set the RTC (e.g. February 30th)                                  |
-| `RTC_SET_ERROR`              | An error occurred while attempting to set the RTC using the valid, correctly formatted time or date        |
+| Error                        | Description                                                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------------------------- |
+| `RTC_FORMATTING_ERROR`       | Expected data to set the RTC, but the received data was incorrectly formatted to do so              |
+| `RTC_INVALID_DATETIME_ERROR` | An invalid date was received as input to set the RTC (e.g. February 30th)                           |
+| `RTC_SET_ERROR`              | An error occurred while attempting to set the RTC using the valid, correctly formatted time or date |
 
 ---
 
@@ -656,4 +656,3 @@ See the applicable license files and copyright notices included with those compo
 At this time, no single license is intended to supersede the individual licenses applicable to vendor-provided or third-party components.
 
 > NOTE: Parts of this README.md file were created using ChatGPT, mixed with content from and edited by @CodeyBrody. Parts of this README.md may be incorrect or incomplete, or may become outdated. If you discover any such issues, feel free to open a pull request, or contact the owner of this repository. (Who, although writing in the third person, did indeed write this note himself. 😉)
-

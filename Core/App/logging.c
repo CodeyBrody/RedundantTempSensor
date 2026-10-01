@@ -177,13 +177,13 @@ void SENSORS_NOT_DETECTED_MESSAGE(int discoveredSensorCount)
 
 void ALL_SENSOR_READS_MISSING_MESSAGE(void)
 {
-    usb_print("All Sensor Readings Missing.");
+    usb_print("All sensor readings missing.");
     return;
 }
 
 void SENSOR_READ_MISSING_MESSAGE(int sensorNum)
 {
-    usb_printf_int("Sensor %u Reading Missing.", sensorNum);
+    usb_printf_int("Sensor %u reading missing.", sensorNum);
     return;
 }
 

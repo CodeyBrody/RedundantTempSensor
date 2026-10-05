@@ -6,9 +6,7 @@
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
-		    "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
-            "cacheVariables": {
-            }
+            "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
         },
         {
             "name": "Debug",
@@ -23,6 +21,16 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "WSL-Debug",
+            "inherits": "Debug",
+            "binaryDir": "${sourceDir}/build-wsl/Debug"
+        },
+        {
+            "name": "WSL-Release",
+            "inherits": "Release",
+            "binaryDir": "${sourceDir}/build-wsl/Release"
         }
     ],
     "buildPresets": [
@@ -33,6 +41,14 @@
         {
             "name": "Release",
             "configurePreset": "Release"
+        },
+        {
+            "name": "WSL-Debug",
+            "configurePreset": "WSL-Debug"
+        },
+        {
+            "name": "WSL-Release",
+            "configurePreset": "WSL-Release"
         }
     ]
 }

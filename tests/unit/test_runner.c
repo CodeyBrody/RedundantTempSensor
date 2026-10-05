@@ -1,9 +1,5 @@
 #include "unity.h"
 
-void setUp(void) {}
-
-void tearDown(void) {}
-
 void test_findAverageValidTemp_allSensorsValid(void);
 void test_findAverageValidTemp_ignoredFaultySensors(void);
 

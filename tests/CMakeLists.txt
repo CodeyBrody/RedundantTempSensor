@@ -7,11 +7,14 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 add_executable(unit_tests
     unit/test_runner.c
-    unit/test_determination_logic.c
-    ../Core/Src/determination_logic.c
+    unit/determination_logic/test_determination_logic.c
+    ../Core/App/determination_logic.c
     Unity-master/src/unity.c
+    mocks/logging_mock.c
 )
 
 target_include_directories(unit_tests PRIVATE
     Unity-master/src
+    ../Core/Inc
+    fakes
 )

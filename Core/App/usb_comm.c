@@ -3,6 +3,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 
 uint8_t txBuf[BUFFER_SIZE]; // A buffer to hold messages to send out via USART
 extern UART_HandleTypeDef huart2;
@@ -18,7 +19,7 @@ void print_temp(float temp)
     {
         float d_temp = temp * 100;
         snprintf((char *)txBuf, BUFFER_SIZE, "%d.%02d", ((signed int)d_temp / 100),
-                 ((signed int)d_temp % 100));
+                 (abs((signed int)d_temp) % 100));
     }
     HAL_UART_Transmit(&huart2, txBuf, strlen((char *)txBuf), USART_TX_TIMEOUT_MS);
 }

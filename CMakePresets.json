@@ -50,5 +50,11 @@
             "name": "WSL-Release",
             "configurePreset": "WSL-Release"
         }
+    ],
+    "testPresets": [
+        {
+            "name": "WSL-Debug",
+            "configurePreset": "WSL-Debug"
+        }
     ]
 }

@@ -89,7 +89,6 @@ float determineTemp(Sensor sensors[])
     /*if no valid measurements, display an error, and keep displayTemp as NAN...*/
     if (validReadingCount == 0)
     {
-        logError(ALL_SENSOR_READS_MISSING, -1);
         return display_temperature;
     }
 

@@ -170,7 +170,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 /*A function to set the RTC time. Returns 0 on success, 1 for string formatting errors, 2 for
  *invalid date/time errors, and 3 for errors when using HAL code to attempt to set time or date. A
  * return code of -1 means an unrecognized return code was received from `RTC_checkTimeInput`*/
-uint8_t RTC_SetTime(void)
+int8_t RTC_SetTime(void)
 {
 
     RTC_TimeTypeDef sTime = {0};

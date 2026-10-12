@@ -42,6 +42,7 @@ add_executable(${CMAKE_PROJECT_NAME}
     Core/App/rtc.c
     Core/App/interrupts.c
     Core/Src/stm32.c
+    Core/App/interrupt_handlers.c
     )
 
 # Add STM32CubeMX generated sources

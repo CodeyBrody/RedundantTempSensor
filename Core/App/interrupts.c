@@ -72,15 +72,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
+        if (rxByte == '\r')
+        {
+            // Ignore carriage returns
+        }
         // Receive the entire transmission
-        if (rxByte != '\n')
+        else if (rxByte != '\n')
         {
             if (rxIndex < BUFFER_SIZE - 1)
             {
-                if (rxByte != '\r')
-                {
-                    rxBuf[rxIndex++] = rxByte;
-                }
+                rxBuf[rxIndex++] = rxByte;
             }
             else
             {

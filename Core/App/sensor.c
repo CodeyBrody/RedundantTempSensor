@@ -68,7 +68,7 @@ void setupSensors(uint8_t SensorCount, Sensor sensors[])
     initSensorArray(SensorCount, sensors);
 }
 
-float readTempSensor(Sensor *s)
+uint8_t readTempSensor(Sensor *s)
 {
     HAL_StatusTypeDef ret;
     int16_t sensor_value;

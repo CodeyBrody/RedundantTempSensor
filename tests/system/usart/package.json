@@ -1,0 +1,18 @@
+{
+  "name": "usart",
+  "version": "1.0.0",
+  "description": "Jasmine tests for the STM32 USART protocol over the ST-LINK virtual serial port",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "keywords": [],
+  "author": "Brody Schippa, ChatGPT, and auto-generated files",
+  "private": true,
+  "type": "commonjs",
+  "devDependencies": {
+    "jasmine": "^7.0.0"
+  },
+  "dependencies": {
+    "serialport": "^13.0.0"
+  }
+}

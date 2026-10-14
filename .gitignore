@@ -1,7 +1,7 @@
-# CMake build directories
-build/
-
-# CMake generated files
+# Generated CMake and STM32 firmware build outputs
+/build/
+/build-wsl/
+/tests/build/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
@@ -9,3 +9,15 @@ compile_commands.json
 build.ninja
 .ninja_deps
 .ninja_log
+
+# Installed Jasmine / Node.js dependencies (restore with npm ci)
+/tests/system/usart/node_modules/
+
+# Local STM32 IDE cache and temporary compiler output
+/.settings/
+*.o
+*.exe
+
+# Local OS/editor artifacts
+.DS_Store
+Thumbs.db

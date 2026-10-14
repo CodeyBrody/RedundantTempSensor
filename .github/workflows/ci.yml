@@ -18,3 +18,12 @@ jobs:
 
       - name: Verify CMake installation
         run: cmake --version
+
+      - name: Configure Unity tests
+        run: cmake -S tests -B tests/build/ci -G Ninja
+
+      - name: Build Unity tests
+        run: cmake --build tests/build/ci
+
+      - name: Run Unity tests
+        run: ctest --test-dir tests/build/ci --output-on-failure

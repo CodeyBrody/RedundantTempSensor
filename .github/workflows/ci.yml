@@ -48,7 +48,9 @@ jobs:
 
       - name: Configure Debug firmware
         run: cmake --preset Debug
-          cmake build --preset Debug
+
+      - name: Build Debug firmware
+        run: cmake build --preset Debug
 
       - name: Configure Release firmware
         run: cmake --preset Release

@@ -7,7 +7,7 @@
 static Sensor sensors[SENSOR_COUNT];
 float findAverageValidTemp(Sensor sensors[]);
 
-void findAverageValidTempSensorSetup(Sensor[SENSOR_COUNT])
+void findAverageValidTempSensorSetup(Sensor sensors[SENSOR_COUNT])
 {
     for (int i = 0; i < SENSOR_COUNT; i++)
     {

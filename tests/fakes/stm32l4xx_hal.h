@@ -64,7 +64,7 @@ extern GPIO_TypeDef fake_GPIOC;
 typedef enum
 {
     GPIO_PIN_RESET = 0U,
-    GPUO_PIN_SET
+    GPIO_PIN_SET
 } GPIO_PinState;
 
 #define GPIO_PIN_2 ((uint16_t)0x0004)
@@ -139,7 +139,8 @@ typedef struct
  * Function Declarations
  */
 
-HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size,
+                                    uint32_t Timeout);
 HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
 HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress,
                                           uint8_t *pData, uint16_t Size, uint32_t Timeout);
@@ -171,6 +172,6 @@ void fake_disable_irq(void);
 
 #define __disable_irq() fake_disable_irq()
 
-#define __HAL_TIM_SET_AUTORELOAD(__HANDLE__, __VALUE__) \ ((__HANDLE__)->Init.Period = (__VALUE__))
+#define __HAL_TIM_SET_AUTORELOAD(__HANDLE__, __VALUE__) ((__HANDLE__)->Init.Period = (__VALUE__))
 
 #endif

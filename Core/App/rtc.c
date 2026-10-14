@@ -124,7 +124,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
             // If it is a leap year
             if (year % 4 == 0)
             {
-                if ((year != 0) || ((calculate_time(0, 1) % 4) == 0 && year == 0))
+                if ((year != 0) || ((calculate_time(0, 1) % 4) == 0))
                 {
                     maxDays = 29;
                     break;

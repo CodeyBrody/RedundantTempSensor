@@ -102,7 +102,7 @@ void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)
         /*The following code sets the buzzer duration to 2x the requested sensor sampling interval,
          * which should cause the buzzer to continuously sound until the system reaches a state
          * where the buzzer is no longer meant to be constantly sounding*/
-        buzzerDuration = 20000 * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC;
+        buzzerDuration = 2000 * REQUESTED_SENSOR_SAMPLING_INTERVAL_SEC;
     }
     buzzerOn();
 }

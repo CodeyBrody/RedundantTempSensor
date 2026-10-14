@@ -674,7 +674,7 @@ void test_rtc_maximumAllowableFebruaryLeapCenturyDateValueAccepted(void)
     TEST_ASSERT_EQUAL_UINT8(29, fakeLastDate.Date);
 }
 
-void test_rtc_maximumAllowableFebruaryLeapMilliniumDateValueAccepted(void)
+void test_rtc_maximumAllowableFebruaryLeapMilleniumDateValueAccepted(void)
 {
     setUsartMessage("2000/02/29 09:59:59");
 
@@ -748,7 +748,7 @@ int main(void)
     RUN_TEST(test_rtc_aboveValidFebruaryLeapYearDateBoundRejected);
     RUN_TEST(test_rtc_aboveValidFebruaryNotLeapCenturyDateBoundRejected);
     RUN_TEST(test_rtc_maximumAllowableFebruaryLeapCenturyDateValueAccepted);
-    RUN_TEST(test_rtc_maximumAllowableFebruaryLeapMilliniumDateValueAccepted);
+    RUN_TEST(test_rtc_maximumAllowableFebruaryLeapMilleniumDateValueAccepted);
     RUN_TEST(test_rtc_aboveValidFebruaryLeapCenturyDateBoundRejected);
     RUN_TEST(test_rtc_maximumAllowableMarchDateValueAccepted);
     RUN_TEST(test_rtc_aboveValidMarchDateBoundRejected);

@@ -103,8 +103,8 @@ float determineTemp(Sensor sensors[])
     /*Averages the valid temp measurements*/
     average = tally / validReadingCount;
 
-    uint8_t biggestOutlierIndex =
-        0; // Stores the index of the sensor with the highest variation from the average
+    uint8_t biggestOutlierIndex; // Stores the index of the sensor with the highest variation from
+                                 // the average
     uint8_t orderInvalidated[validReadingCount]; // Stores the indices of the sensors invalidated,
                                                  // with the most recently invalidated earlier in
                                                  // the list (all other entries = -1)

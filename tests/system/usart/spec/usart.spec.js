@@ -7,7 +7,7 @@ describe("USART system tests", () => {
 
   beforeEach(async () => {
     port = new SerialPort({
-      path: "COM3",
+      path: process.env.RTS_PORT || "COM3",
       baudRate: 115200,
       autoOpen: false,
     });

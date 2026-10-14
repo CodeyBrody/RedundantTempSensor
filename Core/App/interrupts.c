@@ -15,10 +15,13 @@ volatile uint8_t fullMessageReceived = 0; // A flag to signal when a full messag
 
 void interruptErrorHandler()
 {
-    if (interruptError)
+    __disable_irq();
+    uint16_t pending = interruptError;
+    interruptError = 0;
+    __enable_irq();
+    if (pending)
     {
-        logError(interruptError, -1);
-        interruptError = 0;
+        logError(pending, -1);
     }
     return;
 }

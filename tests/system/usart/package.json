@@ -8,7 +8,6 @@
   "keywords": [],
   "author": "Brody Schippa, ChatGPT, and auto-generated files",
   "private": true,
-  "license": "UNLICENSED",
   "type": "commonjs",
   "devDependencies": {
     "jasmine": "^7.0.0"

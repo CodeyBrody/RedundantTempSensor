@@ -9,23 +9,44 @@ extern volatile uint8_t usartMessage[BUFFER_SIZE]; // A buffer to hold completed
                                                    // received via USART
 extern RTC_HandleTypeDef hrtc;
 
+uint16_t current_century = 20;
+
+uint16_t newCentury = 20;
+
 uint8_t calculate_time(uint8_t firstDigit, uint8_t secondDigit)
 {
     return ((usartMessage[firstDigit] - '0') * 10 + (usartMessage[secondDigit] - '0'));
 }
 
-uint8_t SakamotoAlgo(RTC_DateTypeDef sDate)
+uint8_t SakamotoAlgo(uint16_t fullYear, RTC_DateTypeDef sDate)
 {
+    int32_t year = fullYear;
+
     uint8_t t[12] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+
+    // Avoid problems with a negative year (in the first 2 months) for year 0000
+    // This works since weekday patterns (in a calender year) repeat every 400 years
+    if (year == 0)
+    {
+        year = 400;
+    }
 
     if (sDate.Month < 3)
     {
-        sDate.Year -= 1;
+        year -= 1;
     }
 
-    return ((sDate.Year + sDate.Year / 4 - sDate.Year / 100 + sDate.Year / 400 +
-             t[sDate.Month - 1] + sDate.Date) %
-            7);
+    uint8_t result =
+        (year + year / 4 - year / 100 + year / 400 + t[sDate.Month - 1] + sDate.Date) % 7;
+
+    if (result == 0) // Sunday should return 7 for the RTC format, not 0
+    {
+        return 7;
+    }
+    else
+    {
+        return result;
+    }
 }
 
 /*This function checks the input expected to be data to set the RTC. A return value from this
@@ -103,7 +124,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
             // If it is a leap year
             if (year % 4 == 0)
             {
-                if ((year != 0) || ((calculate_time(0, 1) % 4) != 0 && year == 0))
+                if ((year != 0) || ((calculate_time(0, 1) % 4) == 0 && year == 0))
                 {
                     maxDays = 29;
                     break;
@@ -129,7 +150,11 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
         sDate->Date = calculated_entry;
     }
 
-    sDate->WeekDay = SakamotoAlgo(*sDate);
+    /*Passing the year to a 4 year format to fix leap-year weekday calculation (even
+     * though weekday never utilized and correct weekday never needed in the firmware)*/
+    uint16_t fullYear = ((uint16_t)calculate_time(0, 1) * 100) + calculate_time(2, 3);
+
+    sDate->WeekDay = SakamotoAlgo(fullYear, *sDate);
 
     calculated_entry = calculate_time(11, 12);
 
@@ -163,6 +188,9 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
     {
         sTime->Seconds = calculated_entry;
     }
+
+    // Store the century value
+    newCentury = calculate_time(0, 1);
 
     return 0;
 }
@@ -208,6 +236,8 @@ int8_t RTC_SetTime(void)
     {
         return 3;
     }
+
+    current_century = newCentury;
 
     return 0;
 }

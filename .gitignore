@@ -1,5 +1,10 @@
-# CMake build directories
+# Build directories
 build/
+build-wsl/
+tests/build/
+
+# NPM Dependencies
+tests/system/usart/node_modules/
 
 # CMake generated files
 CMakeFiles/
@@ -9,3 +14,6 @@ compile_commands.json
 build.ninja
 .ninja_deps
 .ninja_log
+
+# Other files & folders
+.settings/

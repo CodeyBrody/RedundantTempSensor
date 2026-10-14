@@ -70,32 +70,32 @@ void test_aboveOOB_sensor0AboveOthersInBoundsDisagreeing(void)
 {
     temperatureBoundsSensorSetup(sensors);
 
-    sensors[0].currTemp = 125.1;
-    sensors[1].currTemp = 23.9;
-    sensors[2].currTemp = 27.9;
+    sensors[0].currTemp = 125.0625f;
+    sensors[1].currTemp = 23.875f;
+    sensors[2].currTemp = 27.875f;
 
     float result = determineTemp(sensors);
 
     TEST_ASSERT_TRUE(ABOVE_BOUNDS & sensors[0].faults);
     TEST_ASSERT_TRUE(IS_OUTLIER == sensors[1].faults);
     TEST_ASSERT_TRUE(IS_OUTLIER == sensors[2].faults);
-    TEST_ASSERT_FLOAT_WITHIN(.0001, 27.9, result);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, 27.875f, result);
 }
 
 void test_aboveOOB_sensor1AboveOthersInBoundsDisagreeing(void)
 {
     temperatureBoundsSensorSetup(sensors);
 
-    sensors[0].currTemp = 23.9;
-    sensors[1].currTemp = 125.1;
-    sensors[2].currTemp = 27.9;
+    sensors[0].currTemp = 23.875f;
+    sensors[1].currTemp = 125.0625f;
+    sensors[2].currTemp = 27.875f;
 
     float result = determineTemp(sensors);
 
-    TEST_ASSERT_TRUE(ABOVE_BOUNDS & sensors[1].faults);
+    TEST_ASSERT_EQUAL_UINT8((ABOVE_BOUNDS | IS_OUTLIER), sensors[1].faults);
     TEST_ASSERT_TRUE(IS_OUTLIER == sensors[0].faults);
     TEST_ASSERT_TRUE(IS_OUTLIER == sensors[2].faults);
-    TEST_ASSERT_FLOAT_WITHIN(.0001, 27.9, result);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, 27.875f, result);
 }
 
 void test_aboveOOB_sensor2AboveOthersInBoundsDisagreeing(void)
@@ -620,16 +620,16 @@ void test_belowOOB_allSensorsBelowDisagreeing(void)
 {
     temperatureBoundsSensorSetup(sensors);
 
-    sensors[0].currTemp = -40.1f;
-    sensors[1].currTemp = -44.1f;
-    sensors[2].currTemp = -48.1f;
+    sensors[0].currTemp = -40.125f;
+    sensors[1].currTemp = -44.125f;
+    sensors[2].currTemp = -48.125f;
 
     float result = determineTemp(sensors);
 
     TEST_ASSERT_TRUE((BELOW_BOUNDS | IS_OUTLIER) == sensors[0].faults);
     TEST_ASSERT_TRUE((BELOW_BOUNDS | IS_OUTLIER) == sensors[1].faults);
     TEST_ASSERT_TRUE((BELOW_BOUNDS | IS_OUTLIER) == sensors[2].faults);
-    TEST_ASSERT_FLOAT_WITHIN(.0001, -48.1f, result);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, -48.125f, result);
 }
 
 void test_belowOOB_testLowerBoundary(void)

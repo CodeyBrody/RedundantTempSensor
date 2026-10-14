@@ -8,29 +8,45 @@
 I2C_HandleTypeDef hi2c1;
 // UART_HandleTypeDef huart2;
 // SPI_HandleTypeDef hspi2;
-// RTC_HandleTypeDef hrtc;
+RTC_HandleTypeDef hrtc;
 // TIM_HandleTypeDef htim16;
 
 volatile HAL_StatusTypeDef fake_HAL_Transmit_StatusReturn = HAL_OK;
 volatile HAL_StatusTypeDef fake_HAL_Transmit_StatusReturn_2 = HAL_OK;
-uint8_t fake_HAL_Transmit_StatusCallCount = 0;
+uint8_t fake_HAL_Transmit_CallCount = 0;
 
 volatile HAL_StatusTypeDef fake_HAL_Receive_StatusReturn = HAL_OK;
 volatile HAL_StatusTypeDef fake_HAL_Receive_StatusReturn_2 = HAL_OK;
-uint8_t fake_HAL_Receive_StatusCallCount = 0;
+uint8_t fake_HAL_Receive_CallCount = 0;
 
 volatile float fakeTempSensorVals[SENSOR_COUNT] = {0, 0, 0};
+
+uint8_t fakeMissingSensorAddress[SENSOR_COUNT] = {0};
 
 HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress,
                                           uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-    fake_HAL_Transmit_StatusCallCount++;
-    return fake_HAL_Transmit_StatusReturn;
+    fake_HAL_Transmit_CallCount++;
+    for (uint8_t i = 0; i < SENSOR_COUNT; i++)
+    {
+        if (DevAddress == fakeMissingSensorAddress[i])
+        {
+            return HAL_ERROR;
+        }
+    }
+    if ((fake_HAL_Transmit_CallCount % 2) == 1)
+    {
+        return fake_HAL_Transmit_StatusReturn;
+    }
+    else
+    {
+        return fake_HAL_Transmit_StatusReturn_2;
+    }
 }
 HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress,
                                          uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
-    fake_HAL_Receive_StatusCallCount++;
+    fake_HAL_Receive_CallCount++;
 
     float temp;
     switch (DevAddress)
@@ -45,30 +61,19 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
             temp = fakeTempSensorVals[2];
             break;
         default:
-            printf("FIrstHalERr?");
             return HAL_ERROR;
     }
 
-    if (abs(temp) > 127)
+    if (temp > 127.9375 || temp < -128)
     {
         return HAL_ERROR;
     }
 
-    uint8_t sign = (temp < 0) << 7; // 0 = positive, 1 = negative
-    int16_t encoded = abs(temp) / 0.0625;
+    int16_t encoded = (int16_t)(temp / 0.0625);
+    encoded &= 0x0FFF; // Cuts off all but the least significant 12 bits
 
-    printf("Encoded: %d", encoded);
-
-    int8_t secondByte = (encoded % 16) << 4;
-    int8_t firstByte = (encoded >> 4);
-    if (sign > 0)
-    {
-        firstByte |= sign;
-    }
-    else
-    {
-        firstByte &= sign;
-    }
+    uint8_t secondByte = (uint8_t)(encoded << 4);
+    uint8_t firstByte = (uint8_t)(encoded >> 4);
 
     int count = 0;
     while (count < Size)
@@ -88,5 +93,37 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
         count++;
     }
 
-    return fake_HAL_Receive_StatusReturn;
+    if (fake_HAL_Receive_CallCount % 2 == 1)
+    {
+        return fake_HAL_Receive_StatusReturn;
+    }
+    else
+    {
+        return fake_HAL_Receive_StatusReturn_2;
+    }
+}
+
+/*RTC fakes*/
+
+int fakeRTCSetTimeCallCount = 0;
+int fakeRTCSetDateCallCount = 0;
+
+RTC_TimeTypeDef fakeLastTime;
+RTC_DateTypeDef fakeLastDate;
+
+HAL_StatusTypeDef fakeRTCSetTimeReturn = HAL_OK;
+HAL_StatusTypeDef fakeRTCSetDateReturn = HAL_OK;
+
+HAL_StatusTypeDef HAL_RTC_SetTime(RTC_HandleTypeDef *hrtc, RTC_TimeTypeDef *sTime, uint32_t Format)
+{
+    fakeRTCSetTimeCallCount++;
+    fakeLastTime = *sTime;
+    return fakeRTCSetTimeReturn;
+}
+
+HAL_StatusTypeDef HAL_RTC_SetDate(RTC_HandleTypeDef *hrtc, RTC_DateTypeDef *sDate, uint32_t Format)
+{
+    fakeRTCSetDateCallCount++;
+    fakeLastDate = *sDate;
+    return fakeRTCSetDateReturn;
 }

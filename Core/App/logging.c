@@ -6,6 +6,7 @@
 #include "usb_comm.h"
 
 uint8_t buf[5]; // Buffer to hold fault strings for the different temp sensor readings
+extern uint16_t current_century;
 
 /*ERROR MESSAGE FUNCTIONS*/
 void SENSORS_NOT_DETECTED_MESSAGE(int optionalInt);
@@ -122,7 +123,7 @@ void logData(float displayTemp, Sensor sensors[])
 
 void logCurrentDateTime(void)
 {
-    uint8_t buf[25];
+    uint8_t buf[32];
 
     // Create Date and Time Structs to get the store the date and time of different readings
     RTC_TimeTypeDef t;
@@ -132,7 +133,7 @@ void logCurrentDateTime(void)
     HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
 
     snprintf((char *)buf, sizeof(buf), "%02d/%02d/%04d %02d:%02d:%02d", d.Month, d.Date,
-             2000 + d.Year, t.Hours, t.Minutes, t.Seconds);
+             (current_century * 100) + d.Year, t.Hours, t.Minutes, t.Seconds);
 
     usb_print((const char *)buf);
     return;
@@ -274,9 +275,6 @@ void BUFFER_FULL_MESSAGE(void)
 void BUFFER_OVERFLOW_MESSAGE(void)
 {
     usb_print("The rxBuf received a message or command with too many characters.");
-    usb_print_delimiter(" ");
-    usb_print("Received: ");
-    usb_print((const char *)usartMessage);
     usb_print_delimiter(" ");
     usb_print("Clearing buffer.");
     return;

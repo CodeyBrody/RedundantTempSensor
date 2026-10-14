@@ -110,7 +110,7 @@ The LEDs are controlled through daisy-chained 74HC595 shift registers using SPI.
 
 An active buzzer is used to provide an audible indication when certain sensor condition changes occur.
 
-A short beep is generated when a sensor becomes newly faulty (experiences a communication failure, or has it's reading flagged as being an outlier or out of the sensor's specified operating range). If all sensors become unavailable, the buzzer enters an extended/continuous alert state.
+A short beep is generated when a sensor becomes newly faulty (experiences a communication failure, or has its reading flagged as being an outlier or out of the sensor's specified operating range). If all sensors become unavailable, the buzzer enters an extended/continuous alert state.
 
 ---
 
@@ -125,6 +125,7 @@ Core/
 │   ├── determination_logic.c
 │   ├── hardware.c
 │   ├── interrupts.c
+│   ├── interrupt_handlers.c
 │   ├── logging.c
 │   ├── rtc.c
 │   ├── sensor.c
@@ -138,6 +139,7 @@ Core/
 │   ├── faults.h
 │   ├── hardware.h
 │   ├── interrupts.h
+│   ├── interrupt_handlers.h
 │   ├── logging.h
 │   ├── rtc.h
 │   ├── sensor.h
@@ -384,7 +386,7 @@ E: 09/10/2026 10:42:20 [303] Sensor 2 reading marked invalid as an outlier.
 ```
 
 ```text
-E: 09/10/2026 10:42:22 [200] All sensor readings missing..
+E: 09/10/2026 10:42:22 [200] All sensor readings missing.
 ```
 
 They are also terminated by carriage return and newline characters. A table of different errors and their error codes is shown below.
@@ -499,7 +501,7 @@ git clone https://github.com/CodeyBrody/RedundantTempSensor.git
 cd RedundantTempSensor
 ```
 
-Two options are to (Build with VS Code)[#build-with-vs-code], or to (Build from the Command Line)[#build-from-the-command-line]. The steps of both methods are outlined below.
+You can [Build with VS Code](#build-with-vs-code) or [Build from the Command Line](#build-from-the-command-line). Both approaches are outlined below.
 
 ### Build with VS Code
 
@@ -576,6 +578,60 @@ Cortex-Debug will program the Release ELF through ST-LINK and start the firmware
 
 ---
 
+## Verification and Validation
+
+The software and test harness have undergone unit, serial-protocol and build/deployment verification. **A passing automated suite is not evidence that every assembled-hardware scenario has been verified.** Physical TMP102 breakout-board connections have not yet been reliable enough to complete the planned hardware-integration checklist. Some previous hardware-independent validation used a connected STM32 for USART testing.
+
+### Completed verification
+
+The results distinguish **independent host-side verification of the cleaned source** from **board-connected validation previously reported by the project author**. The two newly added determination-logic cases in the source archive needed their source file included in CMake and one expectation corrected to match the documented all-outlier fallback; these adjustments are included in this cleaned distribution:
+
+| Area                                             | Result                                              | What was verified                                                                                                                                                                                                            |
+| ------------------------------------------------ | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C Unity — determination logic and sensor reading | **102 tests passed, 0 failures**                    | Sensor validity, averaging and outlier selection, upper/lower bounds, missing readings, signed TMP102 conversion, I²C failure/retry behavior, mocked sensor error logging, and two additional determination-logic edge cases |
+| C Unity — RTC                                    | **51 tests passed, 0 failures**                     | Date/time syntax and valid ranges, month and leap-century boundaries, weekday calculation including year 0000, HAL failure handling, and century-update behavior                                                             |
+| Jasmine — USART protocol                         | **17 specs passed (previously reported by author)** | Valid commands, LF/CRLF, malformed and invalid input, rapid messages, pending-message and buffer-overflow cases, and subsequent command recovery over the ST-LINK virtual COM port                                           |
+| Firmware builds                                  | **Passed (previously reported by author)**          | Clean Debug and Release CMake/Ninja builds, with compiler warning resolved                                                                                                                                                   |
+| Deployment and debugging                         | **Passed (previously reported by author)**          | Release firmware launched through ST-LINK; Debug ELF reached `main()` with source symbols and a functioning breakpoint                                                                                                       |
+
+The **102 main Unity tests and 51 RTC tests were run successfully from the cleaned source on a Linux host using GCC**. The 17 Jasmine specs are **automated, board-connected USART tests**, not stand-alone host-only unit tests; they were previously reported passing on the STM32, but were not rerun as part of this offline cleanup. They verify the serial interface but do not substitute for testing the connected temperature sensors, indicators, and buzzer.
+
+### Reproducing the automated tests
+
+For the host-side C tests, install CMake, Ninja, and a native C compiler (such as MSYS2 UCRT64 GCC on Windows). From the repository root:
+
+```bash
+cmake -S tests -B tests/build/Tests -G Ninja
+cmake --build tests/build/Tests --target unit_tests rtc_tests
+```
+
+Then execute both test programs. On Windows PowerShell:
+
+```powershell
+.\tests\build\Tests\unit_tests.exe
+.\tests\build\Tests\rtc_tests.exe
+```
+
+On Linux, use `./tests/build/Tests/unit_tests` and `./tests/build/Tests/rtc_tests`. You may need to supply `-DCMAKE_C_COMPILER=...` during configuration if your native compiler is not on `PATH` or if a previously selected toolchain is cached.
+
+For the hardware-connected Jasmine tests, connect the Nucleo board to your computer and ensure its firmware is running. Check the COM-port setting in `tests/system/usart/spec/usart.spec.js` (the supplied configuration uses `COM3`), and close any other serial-port monitor. Then run:
+
+```bash
+cd tests/system/usart
+npm ci
+npm test
+```
+
+Node.js and npm are required. The Jasmine tests send USART commands to the actual board; they cannot be run without it.
+
+### Remaining physical/hardware validation
+
+**Not yet completed:** the three-sensor baseline; one/two/zero sensor configurations; physical disconnect/reconnect and recovery; real-sensor negative/disagreement cases; RGB LED and buzzer responses; sampling interval, RTC progression/rollovers, and complete outgoing `D:`/`E:` log consistency; non-hanging behavior during faulty I²C communication. Recommended additional checks include repeated fault cycles, cold power-up, longer-duration stability, and comparison of Debug versus Release behavior.
+
+These are outstanding **validation tasks**, not claimed test passes or defects. A concise checklist is available in [VALIDATION_STATUS.md](VALIDATION_STATUS.md).
+
+---
+
 ## Project Configuration
 
 Several application-level constants are defined in:
@@ -626,11 +682,17 @@ Changing the number of sensors may require corresponding changes to the hardware
 
 Sensor sampling is initiated by a timer interrupt and processed by the main loop. The configured interval represents the desired, approximate interval between reading cycles rather than a guarantee that every cycle will begin at an exact wall-clock time.
 
-### Validation and Testing
+### RTC century handling
 
-While this project has been intended for learning and demonstration of abilities, significant testing should be undergone to ascertain whether this software is fit for any particular purpose before using it. Permission is also not necessarily given for use of the firmware (see the [License](#license) section below for more information).
+USART date/time input uses a four-digit year. The STM32 RTC calendar stores only the last two digits; the application retains the century separately in RAM for timestamp formatting and updates it after a successful set operation. Century information is **not persistent across reset or power loss**, and automatic `99` to `00` year rollover is not tracked (i.e. the century is not automatically updated if the firmware is running during the turn of a century).
 
-Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for just any use by anyone. Contact [@CodeyBrody](https://github.com/CodeyBrody) with questions.
+Additionally, while the the logic checking whether a date-time value provided for setting the RTC is valid, including considering leap years, it seems the microcontroller itself considers any year that ends in 00 as a leap-year. (So, in short, running this code around the turn of a century may require date-time correction on New Year's Day, as well as March 1st ;P ).
+
+### Validation scope
+
+The automated results above may not fully establish fitness for safety-critical, production, or unattended monitoring use. Their may also be bugs or oversight in either the test code, the firmware code, or both.
+
+Currently no warranties are given for fitness for any particular purpose, and the code is not automatically approved for just any use by anyone. However, anyone who does use the firmware, or relies upon any information or code related to this repository or project, does so "as-is" and at their own risk. Contact [@CodeyBrody](https://github.com/CodeyBrody) with questions.
 
 ---
 
@@ -638,8 +700,8 @@ Currently no warranties are given for fitness for any particular purpose, and th
 
 Potential future development opportunities include:
 
-- Documented unit and system tests
-- Making it easier/more straightforward to change the code to use a variable number of sensors.
+- Complete the outstanding physical integration and longer-duration validation checks, as well as additional unit, system, and/or integration tests
+- Making the overall hardware/firmware easier to adapt to different sensor counts.
 - Additional USART commands.
 - Factor additional factors that could indicate questionable readings (e.g. a sudden, large increase or decrease in a sensor reading's value) into determination logic.
 

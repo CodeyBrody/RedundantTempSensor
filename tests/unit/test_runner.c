@@ -56,10 +56,6 @@ void test_aboveOOB_testUpperBoundary(void);
 void test_aboveOOB_sensor0InBoundsOthersAboveOneOutlier(void);
 void test_aboveOOB_sensor1InBoundsOthersAboveOneOutlier(void);
 void test_aboveOOB_sensor2InBoundsOthersAboveOneOutlier(void);
-void test_aboveOOB_sensor0InBoundsOthersAboveAgreeing(void);
-void test_aboveOOB_sensor0InBoundsOthersAboveDisagreeing(void);
-void test_aboveOOB_sensor1InBoundsOthersAboveAgreeing(void);
-void test_aboveOOB_sensor1InBoundsOthersAboveDisagreeing(void);
 
 /*BELOW BOUNDS ERROR TEST DECLARATIONS*/
 void test_belowOOB_sensor0BelowOthersInBoundsAgreeing(void);

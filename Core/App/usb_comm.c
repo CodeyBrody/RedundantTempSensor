@@ -2,8 +2,8 @@
 #include "defines.h"
 #include "math.h"
 #include "stdio.h"
-#include "string.h"
 #include "stdlib.h"
+#include "string.h"
 
 uint8_t txBuf[BUFFER_SIZE]; // A buffer to hold messages to send out via USART
 extern UART_HandleTypeDef huart2;
@@ -17,9 +17,9 @@ void print_temp(float temp)
     }
     else
     {
-        float d_temp = temp * 100;
-        snprintf((char *)txBuf, BUFFER_SIZE, "%d.%02d", ((signed int)d_temp / 100),
-                 (abs((signed int)d_temp) % 100));
+        int hundredths = (int)(temp * 100);
+        snprintf((char *)txBuf, BUFFER_SIZE, "%s%d.%02d", (hundredths < 0 ? "-" : ""),
+                 (abs(hundredths) / 100), (abs(hundredths) % 100));
     }
     HAL_UART_Transmit(&huart2, txBuf, strlen((char *)txBuf), USART_TX_TIMEOUT_MS);
 }

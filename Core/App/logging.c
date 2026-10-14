@@ -123,7 +123,7 @@ void logData(float displayTemp, Sensor sensors[])
 
 void logCurrentDateTime(void)
 {
-    uint8_t buf[32];
+    uint8_t dateTimeBuf[32];
 
     // Create Date and Time Structs to get the store the date and time of different readings
     RTC_TimeTypeDef t;
@@ -132,10 +132,10 @@ void logCurrentDateTime(void)
     HAL_RTC_GetTime(&hrtc, &t, RTC_FORMAT_BIN);
     HAL_RTC_GetDate(&hrtc, &d, RTC_FORMAT_BIN);
 
-    snprintf((char *)buf, sizeof(buf), "%02d/%02d/%04d %02d:%02d:%02d", d.Month, d.Date,
-             (current_century * 100) + d.Year, t.Hours, t.Minutes, t.Seconds);
+    snprintf((char *)dateTimeBuf, sizeof(dateTimeBuf), "%02d/%02d/%04d %02d:%02d:%02d", d.Month,
+             d.Date, (current_century * 100) + d.Year, t.Hours, t.Minutes, t.Seconds);
 
-    usb_print((const char *)buf);
+    usb_print((const char *)dateTimeBuf);
     return;
 }
 

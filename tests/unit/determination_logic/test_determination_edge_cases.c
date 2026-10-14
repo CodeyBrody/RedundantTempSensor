@@ -32,9 +32,9 @@ void test_error_guesses_all0temps(void)
     float results = determineTemp(sensors);
 
     TEST_ASSERT_FLOAT_WITHIN(.0001, 0.0f, results);
-    TEST_ASSERT_EQUAL_UINT8(0, sensors[0].currTemp);
-    TEST_ASSERT_EQUAL_UINT8(0, sensors[1].currTemp);
-    TEST_ASSERT_EQUAL_UINT8(0, sensors[2].currTemp);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, 0.0f, sensors[0].currTemp);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, 0.0f, sensors[1].currTemp);
+    TEST_ASSERT_FLOAT_WITHIN(.0001, 0.0f, sensors[2].currTemp);
 }
 
 // One maximum, one minumum, one in the middle

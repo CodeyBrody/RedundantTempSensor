@@ -9,8 +9,9 @@ add_executable(unit_tests
     unit/test_runner.c
     unit/determination_logic/test_findAverageValidTemp.c
     unit/determination_logic/test_outlier_detection.c
-    unit/determination_logic/test_aboveOOB_detection.c
+    unit/determination_logic/test_temperature_bounds.c
     unit/determination_logic/test_missing_sensors.c
+    unit/determination_logic/test_determination_edge_cases.c
     unit/usart/test_usart_commands.c
     unit/sensor/test_sensor.c
     ../Core/App/determination_logic.c

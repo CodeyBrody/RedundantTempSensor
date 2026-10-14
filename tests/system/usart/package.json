@@ -1,14 +1,14 @@
 {
   "name": "usart",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Jasmine tests for the STM32 USART protocol over the ST-LINK virtual serial port",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Brody Schippa, ChatGPT, and auto-generated files",
+  "private": true,
+  "license": "UNLICENSED",
   "type": "commonjs",
   "devDependencies": {
     "jasmine": "^7.0.0"

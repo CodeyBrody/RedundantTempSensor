@@ -50,10 +50,10 @@ jobs:
         run: cmake --preset Debug
 
       - name: Build Debug firmware
-        run: cmake build --preset Debug
+        run: cmake --build --preset Debug
 
       - name: Configure Release firmware
         run: cmake --preset Release
 
       - name: Build Release firmware
-        run: cmake build --preset Release
+        run: cmake --build --preset Release

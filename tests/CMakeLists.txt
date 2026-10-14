@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(RedundantTempSensorTests C)
 
+enable_testing()
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
@@ -43,3 +45,6 @@ target_include_directories(rtc_tests PRIVATE
     ../Core/Inc
     fakes
 )
+
+add_test(NAME unit_tests COMMAND unit_tests)
+add_test(NAME rtc_tests COMMAND rtc_tests)

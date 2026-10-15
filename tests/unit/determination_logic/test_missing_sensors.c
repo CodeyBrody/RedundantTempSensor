@@ -8,6 +8,8 @@ float determineTemp(Sensor sensors[]);
 
 void missingSensorsSensorSetup(Sensor sensors[SENSOR_COUNT])
 {
+    UnitySetTestFile(__FILE__);
+
     for (int i = 0; i < SENSOR_COUNT; i++)
     {
         sensors[i].address = 0;

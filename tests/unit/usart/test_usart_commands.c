@@ -38,6 +38,7 @@ int8_t RTC_SetTime(void)
 
 void test_usart_setTimeCommandAccepted(void)
 {
+    UnitySetTestFile(__FILE__);
 
     // Arrange
     setTime = 0;
@@ -59,6 +60,8 @@ void test_usart_setTimeCommandAccepted(void)
 
 void test_usart_incompleteMessageIgnored(void)
 {
+    UnitySetTestFile(__FILE__);
+
     // Arrange
     setTime = 0;
     fullMessageReceived = 0;
@@ -78,6 +81,8 @@ void test_usart_incompleteMessageIgnored(void)
 
 void test_usart_unrecognizedMessageRejected(void)
 {
+    UnitySetTestFile(__FILE__);
+
     // Arrange
     setTime = 0;
     fullMessageReceived = 1;
@@ -101,6 +106,8 @@ void test_usart_unrecognizedMessageRejected(void)
 
 void test_usart_validDateTimeSettingSuccessful(void)
 {
+    UnitySetTestFile(__FILE__);
+
     setTime = 1;
     fullMessageReceived = 1;
     rtcSetTimeCallCount = 0;

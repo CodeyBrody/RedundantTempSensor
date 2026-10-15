@@ -27,6 +27,8 @@ extern volatile float fakeTempSensorVals[SENSOR_COUNT];
 
 void readTempSensorSensorSetup(Sensor sensors[SENSOR_COUNT])
 {
+    UnitySetTestFile(__FILE__);
+
     for (int i = 0; i < SENSOR_COUNT; i++)
     {
         sensors[i].currTemp = 0.0f;

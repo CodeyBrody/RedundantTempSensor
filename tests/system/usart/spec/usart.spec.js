@@ -289,6 +289,10 @@ describe("USART system tests", () => {
     }
   });
 
+  /** NOTE: The following test is dependent upon the second command/message being fully received
+   *        by the microcontroller before the initial command is fully processed, and specifically
+   *        before the `fullMessageReceived` flag is cleared/reset to 0.
+   */
   it("preserves a queued command when another message arrives", async () => {
     sent_string = "ORIGINAL_COMMAND\nOVERWRITE_ATTEMPT\n";
     expected_string = "Received: ORIGINAL_COMMAND";
@@ -378,7 +382,7 @@ describe("USART system tests", () => {
       expect(received).toContain(expected_string);
 
       let recovered = false;
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (let attempt = 0; attempt < 1; attempt++) {
         try {
           const responsePromise = waitForText(port, "SEND_TIME\r\n", 3000);
 

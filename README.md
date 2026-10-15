@@ -2,7 +2,7 @@
 
 A fault-tolerant temperature monitoring system built around an STM32L476RG microcontroller and three redundant TMP102 temperature sensors.
 
-The system periodically reads the sensors, evaluates the readings for communication failures, out-of-range values, and disagreement between redundant measurements, and determines a final temperature value from the available valid readings.
+The system periodically reads the sensors, evaluates the readings for communication failures, out-of-range values, and disagreement between redundant measurements, and determines a final display temperature based on the available readings and the system's fault-handling logic.
 
 Sensor status (and certain changes in sensor status) is communicated through LEDs and an active buzzer, while timestamped temperature and error information is transmitted to a host computer over USART.
 
@@ -306,12 +306,12 @@ The exact determination logic is implemented in `determination_logic.c`.
 
 Sensor faults are represented as a bitmask, allowing multiple fault conditions to be associated with the same sensor.
 
-| Flag           | Meaning                                                           |
-| -------------- | ----------------------------------------------------------------- |
-| `COMM_FAULT`   | Communication with the sensor failed                              |
-| `ABOVE_BOUNDS` | Temperature reading above the sensor's specified upper bound      |
-| `BELOW_BOUNDS` | Temperature reading below the sensor's specified lower bound      |
-| `IS_OUTLIER`   | Reading was rejected because it disagreed with the other readings |
+| Flag           | Meaning                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `COMM_FAULT`   | Communication with the sensor failed                                                                                     |
+| `ABOVE_BOUNDS` | Temperature reading above the sensor's specified upper bound                                                             |
+| `BELOW_BOUNDS` | Temperature reading below the sensor's specified lower bound                                                             |
+| `IS_OUTLIER`   | Reading was flagged due to deviation from the current average of available, currently considered valid, sensor readings. |
 
 Because these are bit flags, multiple faults can be simultaneously associated with one sensor (e.g. a reading can be both above bounds and an outlier).
 
@@ -445,10 +445,10 @@ The only command the firmware has currently been set up to recognize and handle 
 The microcontroller will send a "`SEND_TIME\r\n`" message before entering normal operation. After this message is sent, the next received message is interpreted as the date/time value. The expected format is:
 
 ```text
-YYYY/mm/dd HH:MM:SS
+YYYY/MM/DD HH:mm:ss
 ```
 
-using 24-hour time.
+where `YYYY` is the four digit year, `MM` is the 2 digit month, `DD` is the 2-digit day, `HH` is the 2-digit hour, `mm` is the 2-digit minute, and `ss` is the 2-digit second, using 24-hour time.
 
 Example:
 
@@ -490,11 +490,12 @@ The following are errors that may occur while setting the RTC:
 
 To use the following build method, the following software must be installed:
 
-- Visual Studio Code
 - CMake
 - Ninja
 - ARM GNU Toolchain (`arm-none-eabi-gcc`)
 - Git
+
+If using the VS Code method, Visual Studio Code should be installed as well.
 
 The **ARM GNU Toolchain must be available on the system `PATH`**, as the project's CMake toolchain file expects to locate the ARM compiler using the `arm-none-eabi-` command prefix.
 

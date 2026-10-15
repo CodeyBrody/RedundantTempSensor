@@ -1,6 +1,6 @@
 # Redundant Temperature Sensor System
 
-A fault-tolerant temperature monitoring system built around an STM32-L476RG microcontroller and three redundant TMP102 temperature sensors.
+A fault-tolerant temperature monitoring system built around an STM32L476RG microcontroller and three redundant TMP102 temperature sensors.
 
 The system periodically reads the sensors, evaluates the readings for communication failures, out-of-range values, and disagreement between redundant measurements, and determines a final temperature value from the available valid readings.
 
@@ -10,11 +10,11 @@ Sensor status (and certain changes in sensor status) is communicated through LED
 
 ## Overview
 
-This project includes code for **a redundant temperature sensor system** to be run on an STM32-L476RG microcontroller.
+This project includes code for **a redundant temperature sensor system** to be run on an STM32L476RG microcontroller.
 
 This system:
 
-- Periodically samples multiple temperature sensors over a shared I²C bus, utilizing a timer interrupt,
+- Periodically samples multiple temperature sensors over a shared I²C bus, utilizing a timer interrupt.
 - Detects sensor communication failures.
 - Detects temperature measurements outside the sensor's specified operating range.
 - Identifies measurements that deviate significantly from the other measurements received.
@@ -56,7 +56,7 @@ The project serves as a demonstration of embedded C programming, peripheral comm
 > **NOTE:** While the firmware logic that analyzes the temperature readings is designed to accommodate a variable number of temperature sensors, the default settings and code of the software overall expect 3 temperature sensors. This setup is used in the diagrams and explanations that follow.
 > The astute engineer may discern how to modify the hardware (and what software constants and lines of code may need to be changed) to use the software with other numbers of sensors.
 
-The firmware is intended to run on an STM32-L476RG microcontroller. TMP102 digital temperature sensors are connected to the microcontroller via a shared I2C bus and are intermittently polled after a timer interrupt sets a flag to do so during the next pass through the main function's while loop.
+The firmware is intended to run on an STM32L476RG microcontroller. TMP102 digital temperature sensors are connected to the microcontroller via a shared I2C bus and are intermittently polled after a timer interrupt sets a flag to do so during the next pass through the main function's while loop.
 
 The received sensor readings are then analyzed by the firmware, and a final 'display temperature' is determined. Based on both the readings from the sensors and the results of the determination logic running on the microcontroller, LED indicators associated with each sensor are then updated, and data is sent to a host computer via a USART connection.
 
@@ -84,9 +84,9 @@ The default firmware configuration expects three TMP102 sensors using the follow
 
 | Sensor   | TMP102 Address |
 | -------- | -------------: |
-| Sensor 1 |         `0x48` |
-| Sensor 2 |         `0x49` |
-| Sensor 3 |         `0x4A` |
+| Sensor 0 |         `0x48` |
+| Sensor 1 |         `0x49` |
+| Sensor 2 |         `0x4A` |
 
 The sensors share the same I²C bus.
 
@@ -124,8 +124,8 @@ Core/
 │   ├── alerts.c
 │   ├── determination_logic.c
 │   ├── hardware.c
-│   ├── interrupts.c
 │   ├── interrupt_handlers.c
+│   ├── interrupts.c
 │   ├── logging.c
 │   ├── rtc.c
 │   ├── sensor.c
@@ -138,8 +138,8 @@ Core/
 │   ├── error_codes.h
 │   ├── faults.h
 │   ├── hardware.h
-│   ├── interrupts.h
 │   ├── interrupt_handlers.h
+│   ├── interrupts.h
 │   ├── logging.h
 │   ├── rtc.h
 │   ├── sensor.h
@@ -155,9 +155,9 @@ Core/
 
 ```text
        TMP102 Sensors
-       Sensor 1  ─┐
-       Sensor 2  ─┼── I²C ──► Sensor Readings
-       Sensor 3  ─┘                │
+       Sensor 0  ─┐
+       Sensor 1  ─┼── I²C ──► Sensor Readings
+       Sensor 2  ─┘                │
                                    ▼
                    Fault Detection & Redundancy Logic
                                    │
@@ -241,7 +241,7 @@ Its current temperature is treated as unavailable.
 
 ### 2. Outlier Detection
 
-If more than one reading is available for consideration, then existing sensor readings are compared against one another.
+If more than one reading is available for consideration, then the available sensor readings are compared against one another.
 
 If a reading's value differs from the current average by at least the configured disagreement threshold, it is marked as an outlier:
 
@@ -253,9 +253,17 @@ The average is then recalculated using the remaining valid reading values.
 
 This process continues until the remaining reading values no longer disagree beyond the configured threshold.
 
+If this process removes all but one reading, the last reading is marked as an outlier as well (every reading then disagrees with every other), an `ALL_READS_MARKED_INVALID` error is reported, and the display temperature is chosen as described below.
+
+Agreement between sensors is trusted over the sensors' specified operating range. Therefore, when two sensors agree with each other on a value outside of the sensors' specified operating range, disagreeing with a third reading that is within the sensors' specified range, then they will be trusted over the third, outlier value (even though they are out of bounds and the third is within the specified operating temperature bounds).
+
+In such a case, the two agreeing readings would still be flagged by the bounds check as being out of the specified sensor operating bounds, but their average would still becomes the display temperature.
+
+> **NOTE:** Outlier detection runs before readings are checked for being out of specified operating bounds, and it runs only when more than one reading is available.
+
 ### 3. Temperature Bounds
 
-After outlier processing, temperature reading values are checked against the configured upper and lower temperature bounds (by default set to the manufacturer's specified operating range for the sensors).
+After outlier processing, every available reading (including readings already marked as outliers) is checked against the configured upper and lower temperature bounds (by default set to the manufacturer's specified operating range for the sensors). A reading can therefore carry both an outlier flag and a bounds flag.
 
 Measurements outside those limits are marked with:
 
@@ -277,10 +285,10 @@ In light of the results of the aforementioned analyses and the sensor readings a
 
 The firmware may:
 
-- Average multiple valid sensors.
-- Use the only remaining sensor reading value (if only one sensor reading remains unflagged).
-- Choose a reading from one sensor to display (when all readings are outliers of each other).
-- Average multiple flagged readings to display (when all readings have been flagged as missing or as potentially invalid or questionable).
+- Average the readings that carry no fault flags (the normal case).
+- Use the only available reading when just one sensor is communicating. The bounds check still runs on it, so the reading is displayed even if it is flagged as out of range.
+- Choose one reading to display when all readings are outliers of each other. Specifically the last reading marked as an outlier will be selected, if that reading is also within the specified sensor operating range. Otherwise, the last reading marked as an outlier that is also within the sensor operating range will be selected. However, if none of the readings are within the specified sensor operating bounds, then the last reading marked as an outlier will still be selected, in spite of also being out of the specified operating range.
+- Average readings that all both agree with each other and are outside of the specified sensor operating range, if all in-bounds readings are marked as outliers (e.g. the two-agreeing-sensors case described in [Outlier Detection](#2-outlier-detection) above). In such a case, an `ALL_READS_MARKED_INVALID` error is reported with no sensor number.
 - Return `NAN` when no sensor readings are available.
 
 The exact determination logic is implemented in `determination_logic.c`.
@@ -306,7 +314,7 @@ Because these are bit flags, multiple faults can be simultaneously associated wi
 
 The program is set to communicate with a host computer via USART (USB) using a baud rate of 115200. The STM32's USART connection is exposed to the host computer through the Nucleo board's USB connection.
 
-Messages can be sent either to or from the microcontroller (although the only task currently intended to be done through sending data to the microcontroller is setting the RTC (see (Communication to the Microcontroller)[#communication-to-the-microcontroller] later in this section)).
+Messages can be sent either to or from the microcontroller. The only task currently intended to be done by sending data to the microcontroller is setting the RTC; see [Communication to the Microcontroller](#communication-to-the-microcontroller) later in this section.
 
 ### Communication From the Microcontroller
 
@@ -332,7 +340,7 @@ D:
 The message contains:
 
 ```text
-D: timestamp, display temperature, sensor 1 temperature, sensor 2 temperature, sensor 3 temperature, sensor 1 faults, sensor 2 faults, sensor 3 faults
+D: timestamp, display temperature, sensor 0 temperature, sensor 1 temperature, sensor 2 temperature, sensor 0 faults, sensor 1 faults, sensor 2 faults
 ```
 
 Example:
@@ -351,8 +359,10 @@ A description of the different pieces of information follows:
 
 - Timestamp - The timestamp for the specific batch of data.
 - Display Temperature - The temperature returned by the microcontroller logic after analyzing the available individual temperature sensor read values.
-- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, separated by commas. (If a reading was missing, the value is transmitted as "--.--").
-- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading.
+- Sensor Values - The temperature values (in degrees Celsius) derived from the readings of each temperature sensor, in sensor order (sensor 0, 1, 2), separated by commas. (If a reading was missing, the value is transmitted as "--.--").
+- Sensor Faults - A string of symbols representing different 'faults' associated with each temperature sensor reading, in the same sensor order.
+
+> **NOTE:** Sensor numbers in messages are 0-based: sensors 0, 1 and 2 are the sensors at `0x48`, `0x49` and `0x4A`, in that order (as in [Sensor Configuration](#sensor-configuration) above).
 
 #### Fault Symbols
 
@@ -407,7 +417,7 @@ They are also terminated by carriage return and newline characters. A table of d
 | 503        |                 `RTC_SET_ERROR` |
 | 504        |                `RX_BUFFER_FULL` |
 | 505        |            `RX_BUFFER_OVERFLOW` |
-| 000        |   `UNRECOGNIZED_ERROR_RECEIVED` |
+| 999        |   `UNRECOGNIZED_ERROR_RECEIVED` |
 
 ### Communication to the Microcontroller
 
@@ -580,7 +590,7 @@ Cortex-Debug will program the Release ELF through ST-LINK and start the firmware
 
 ## Verification and Validation
 
-The software and test harness have undergone unit, serial-protocol and build/deployment verification. **A passing automated suite is not evidence that every assembled-hardware scenario has been verified.** Physical TMP102 breakout-board connections have not yet been reliable enough to complete the planned hardware-integration checklist. Some previous hardware-independent validation used a connected STM32 for USART testing.
+The software and test harness have undergone unit, serial-protocol and build/deployment verification. Some previous hardware-independent validation used a connected STM32 for USART testing.
 
 ### Completed verification
 
@@ -612,9 +622,7 @@ Then execute both test programs. On Windows PowerShell:
 .\tests\build\Tests\rtc_tests.exe
 ```
 
-On Linux, use `./tests/build/Tests/unit_tests` and `./tests/build/Tests/rtc_tests`. You may need to supply `-DCMAKE_C_COMPILER=...` during configuration if your native compiler is not on `PATH` or if a previously selected toolchain is cached.
-
-For the hardware-connected Jasmine tests, connect the Nucleo board to your computer and ensure its firmware is running. Check the COM-port setting in `tests/system/usart/spec/usart.spec.js` (the supplied configuration uses `COM3`), and close any other serial-port monitor. Then run:
+For the hardware-connected Jasmine tests, connect the Nucleo board to your computer and ensure its firmware is running. Check the COM-port setting in `tests/system/usart/spec/usart.spec.js` (the supplied configuration uses `COM3`), and close any other serial-port monitor. Then run (from the project root):
 
 ```bash
 cd tests/system/usart
@@ -622,7 +630,7 @@ npm ci
 npm test
 ```
 
-Node.js and npm are required. The Jasmine tests send USART commands to the actual board; they cannot be run without it.
+Node.js and npm are required. The Jasmine tests send USART commands to the actual board; they were not designed to be run without it.
 
 ### Remaining physical/hardware validation
 

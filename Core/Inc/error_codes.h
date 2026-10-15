@@ -41,6 +41,6 @@
 #define RX_BUFFER_OVERFLOW 505 // The rxBuf received a message or command with too many characters
 
 /*UNRECOGNIZED ERROR CODE*/
-#define UNRECOGNIZED_ERROR_RECEIVED 000
+#define UNRECOGNIZED_ERROR_RECEIVED 999
 
 #endif

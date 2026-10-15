@@ -28,8 +28,7 @@ add_executable(unit_tests
 target_include_directories(unit_tests PRIVATE
     Unity-master/src
     ../Core/Inc
-    fakes
-    
+    fakes   
 )
 
 

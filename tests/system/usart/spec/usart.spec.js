@@ -373,7 +373,13 @@ describe("USART system tests", () => {
       expected_string =
         "The rxBuf received a message or command with too many characters.";
 
-      const overflowPromise = waitForText(port, expected_string, 3000);
+      overflowedText = "X".repeat(payloadLength % 100);
+
+      const overflowPromise = waitForAllText(
+        port,
+        [expected_string, `Received: ${overflowedText}\r\n`],
+        5000,
+      );
 
       await writeAndDrain(port, sent_string);
 
@@ -381,34 +387,22 @@ describe("USART system tests", () => {
 
       expect(received).toContain(expected_string);
 
-      let recovered = false;
-      for (let attempt = 0; attempt < 1; attempt++) {
-        try {
-          const responsePromise = waitForText(port, "SEND_TIME\r\n", 3000);
+      const responsePromise = waitForText(port, "SEND_TIME\r\n", 3000);
 
-          await writeAndDrain(port, "SET_TIME\n");
-          await responsePromise;
+      await writeAndDrain(port, "SET_TIME\n");
+      await responsePromise;
 
-          const minute = 40 + attempt;
-          const dateTime = `2026/10/16 11:${minute}:00`;
-          const expectedLog = `D: 10/16/2026 11:${minute}:`;
+      const minute = 40 + attempt;
+      const dateTime = `2026/10/16 11:${minute}:00`;
+      const expectedLog = `D: 10/16/2026 11:${minute}:`;
 
-          const logPromise = waitForText(port, expectedLog, 10000);
+      const logPromise = waitForText(port, expectedLog, 10000);
 
-          await writeAndDrain(port, dateTime + "\n");
+      await writeAndDrain(port, dateTime + "\n");
 
-          const receivedLog = await logPromise;
+      const receivedLog = await logPromise;
 
-          expect(receivedLog).toContain(expectedLog);
-
-          recovered = true;
-          break;
-        } catch (error) {
-          //An attempt may fail during recovery. Retry up to the defined limit. (Here currently 3)
-        }
-      }
-
-      expect(recovered).toBeTrue();
+      expect(receivedLog).toContain(expectedLog);
     }, 45000);
   }
 

@@ -240,7 +240,11 @@ If an I²C communication fails, the sensor is marked with a communication fault:
 COMM_FAULT
 ```
 
-Its current temperature is treated as unavailable.
+Its current temperature is then treated as unavailable.
+
+When an I²C HAL transmit or receive operation fails, the firmware retries the failed operation once. If the retry also fails, the affected sensor is marked with a `COMM_FAULT`. If the retry succeeds, normal processing continues.
+
+Successful communication operations do not trigger unnecessary retries.
 
 ### 2. Outlier Detection
 
@@ -593,77 +597,112 @@ Cortex-Debug will program the Release ELF through ST-LINK and start the firmware
 
 ## Verification and Validation
 
-Testing is organized to distinguish **verification of individual software behaviors** from **validation of the integrated device**. Passing host-side tests and successful firmware builds do not, by themselves, establish that the assembled temperature-monitoring system behaves correctly under physical fault conditions.
+The following verification and validation activities provide evidence for evaluating whether the firmware implements specified behaviors and for assessing selected aspects of its operation on the target hardware.
 
-### Test Strategy and Basis
+Expectations of specific system behaviors are documented throughout this README.md, including in the [Sensor Redundancy and Fault Detection](#sensor-redundancy-and-fault-detection) and [Communication Protocol](#communication-protocol) sections (additional information may be found in the [Project Configuration](#project-configuration) section). Comments within the source code may provide additional insights.
 
-| Level                         | Question answered                                                                                                             | Environment                                                                                                                                                         |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unit tests**                | Do individual firmware functions produce the expected results, including on error and boundary inputs?                        | Native C executables using [Unity](https://github.com/ThrowTheSwitch/Unity), with STM32 HAL fakes and logging/communication test doubles; no STM32 required.        |
-| **USART system tests**        | Does the running firmware handle serial commands and recovery scenarios correctly through the actual board interface?         | [Jasmine](https://jasmine.github.io/) and [Node SerialPort](https://serialport.io/) communicating with a programmed Nucleo board over its ST-LINK virtual COM port. |
-| **Physical/bench validation** | Do the assembled sensors, indicators, buzzer, and firmware work together under normal operation and injected hardware faults? | Real TMP102 sensors and connected hardware; manually performed and **not fully completed**.                                                                         |
+The documented intended behaviors provide a basis for expected test outcomes. Where a particular edge-case outcome is not independently specified, tests may also characterize the behavior chosen by the implementation. The project does not maintain a separate formal requirements specification or requirements-to-test traceability matrix.
 
-Firmware compilation and deployment checks provide additional evidence that the application can be built and programmed, but are not substitutes for functional tests.
+### Testing Levels
 
-The **test basis** is the expected behavior documented in this README—particularly [Sensor Redundancy and Fault Detection](#sensor-redundancy-and-fault-detection), [Communication Protocol](#communication-protocol), and [Project Configuration](#project-configuration)—together with the implemented interfaces and hardware specifications. Where the documented behavior did not prescribe an edge-case outcome, tests also _characterize_ the implementation's chosen behavior, rather than asserting that the choice is universally correct. This project does not currently maintain a separate, controlled requirements specification or formal requirements-to-test traceability matrix.
+Testing activities are organized into two implemented test levels, with an additional level identified for potential future hardware integration validation:
 
-### Results and Reproducibility
+| Test level                          | Purpose                                                                                      | Environment                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Unit Testing**                    | Test individual firmware functions, including boundary conditions and error handling.        | Unity (C), using simulated HAL responses and test doubles on a host computer. |
+| **USART System Testing**            | Test the running firmware's USART command handling, input buffering, and error recovery.     | Jasmine (JavaScript) communicating with the STM32 board over USART.           |
+| **Hardware Integration Validation** | Test behavior of the complete system with physical sensors, indicators, and injected faults. | STM32 Nucleo board and connected hardware.                                    |
 
-**Evidence current as of October 14, 2026.** Results below distinguish tests rerun while reviewing this source archive from hardware-related results reported by the project author.
+Tests in the third category (Hardware Integration Validation) are **not** included in this repository, and neither test cases nor results of such tests have been logged for this project.
 
-| Activity                              | Latest known result                      | Evidence / scope                                                                                                                                              |
-| ------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Unity application tests**           | **102 passed; 0 failed**                 | Rebuilt and executed on a Linux host with GCC, CMake, and Ninja on October 14, 2026. Includes determination logic, sensor reading, and command-handler tests. |
-| **Unity RTC tests**                   | **51 passed; 0 failed**                  | Rebuilt and executed on the same Linux host on October 14, 2026.                                                                                              |
-| **Jasmine USART tests**               | **17 specs previously reported passing** | Run by the author against a connected STM32. The physical-board suite was not rerun for this README review.                                                   |
-| **Firmware Debug and Release builds** | **Previously reported passing**          | ARM cross-compilation locally and in GitHub Actions; not independently rerun during this review.                                                              |
-| **Programming and debugging**         | **Previously reported passing**          | ST-LINK programming and launch of Release firmware; Debug session reaching `main()` with source-level debugging.                                              |
-| **JavaScript syntax**                 | **Check passed locally**                 | `node --check tests/system/usart/spec/usart.spec.js` on October 14, 2026. This syntax check does not execute the board-connected Jasmine tests.               |
+> **NOTE:** Firmware build checks and continuous integration do not replace functional testing.
 
-These numbers are **individual Unity test cases** or **Jasmine specs**, not a percentage of code coverage. CTest registers the two Unity executables as two test entries. No statement/branch coverage percentage or benchmark runtime is claimed here.
+### Unit Tests — Unity
 
-### Host-Side C Unit Tests
+The unit tests use the [Unity testing framework](https://github.com/ThrowTheSwitch/Unity) to test application code independently of the target microcontroller.
 
-**Location:** [`tests/unit/`](tests/unit/) and [`tests/CMakeLists.txt`](tests/CMakeLists.txt). The host build compiles selected production C files against [`tests/fakes/`](tests/fakes/) and [`tests/mocks/`](tests/mocks/), allowing HAL responses, sensor input, and logging effects to be controlled without the microcontroller.
+Fakes, stubs, and spies replace selected STM32 HAL and logging dependencies, allowing tests to simulate sensor readings, missing sensors, and communication failures; configure HAL operation outcomes to test error handling and retry behavior; and record function calls, arguments, and logged errors for verification.
 
-| Area                                | Behaviors exercised                                                                                                                                                                                                             |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Redundant temperature decisions     | Averaging available valid sensors; each sensor missing or rejected; agreement/disagreement and outlier selection; all-outlier fallback behavior; upper/lower bounds, exact boundaries, and mixed in-/out-of-range measurements. |
-| TMP102 communication and conversion | Positive/negative temperature decoding, sensor read failures, one retry after failed I²C transmit/receive, no unnecessary retry on success, and reported missing-read errors.                                                   |
-| USART command handling              | Recognition of `SET_TIME`, rejection of an unrecognized command, ignoring an incomplete message, and successful date/time dispatch using a stubbed RTC setter.                                                                  |
-| RTC setting logic                   | Date/time formatting and value validation, month/leap-year/century boundaries, weekday calculation, HAL set failures, and century state updates.                                                                                |
+The unit tests are located in [`tests/unit/`](tests/unit/), with test doubles contained in [`tests/fakes/`](tests/fakes/) and [`tests/mocks/`](tests/mocks/).
 
-**Run from the repository root** after installing CMake, Ninja, and a native C compiler (for example, GCC on Linux or MSYS2 UCRT64 GCC on Windows):
+The unit tests investigate select portions of the firmware related to the following functional areas:
+
+| Component                                        | Test coverage                                                                                                                                                                                                                                                  |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Temperature averaging**                        | Correct averaging of valid readings under different combinations of flagged or unavailable sensors, including cases with no valid readings.                                                                                                                    |
+| **Temperature outlier determination**            | Outlier detection and temperature selection with different sensor permutations, agreement/disagreement scenarios, and all-readings-outlier conditions.                                                                                                         |
+| **Missing sensor handling**                      | All combinations of missing sensors, including cases where remaining readings agree or disagree.                                                                                                                                                               |
+| **Temperature bounds**                           | Individual or multiple readings above and below operating bounds, including agreement/disagreement between out-of-bounds readings and agreement/disagreement with in-bounds readings.                                                                          |
+| **Mixed fault scenarios**                        | Cases combining above-bound, below-bound, and in-between readings, including differing agreement relationships.                                                                                                                                                |
+| **Sensor reading and conversion**                | Correct interpretation of sensor values at the limits of the represented temperature range and specified sensor operating range; correctly reading both positive and negative temperature values; correctly handling individual sensor communication failures. |
+| **I²C communication retry and failure behavior** | Correct handling of successful and failed HAL transmit and receive operations, including retry behavior and persistent failures.                                                                                                                               |
+| **USART command processing**                     | Recognition of `SET_TIME`, rejection of unrecognized commands, handling of messages based on the state of the `fullMessageReceived` flag, and acceptance of correctly formatted and valid date/time input.                                                     |
+| **RTC logic**                                    | Date/time validation and calendar handling (e.g. rejecting March 32, accepting February 29th only on a leap year); handling simulated HAL failures.                                                                                                            |
+
+These tests investigate the application's responses to controlled inputs and simulated hardware outcomes. They do not establish the electrical behavior or accuracy of the physical TMP102 sensors, or the operation of the firmware on the actual target hardware.
+
+### USART System Tests — Jasmine
+
+System-level USART tests are implemented using [Jasmine](https://jasmine.github.io/) and Node.js with the SerialPort library. Unlike the host-side unit tests, these tests communicate with firmware running on the STM32 Nucleo board.
+
+The Jasmine USART system tests are located in [`tests/system/usart/spec/usart.spec.js`](tests/system/usart/spec/usart.spec.js).
+
+The test suite investigates the following categories of behavior:
+
+| Category                       | Test coverage                                                                                                                                                                                                    |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Valid command handling**     | Acceptance of a `SET_TIME` command and valid date/time input terminated by either LF (`\n`) or CRLF (`\r\n`).                                                                                                    |
+| **Invalid input and recovery** | Rejection of unrecognized commands, malformed date/time formats, invalid date/time values, and unexpected commands while awaiting RTC data, followed by successful processing of corrected or anticipated input. |
+| **Consecutive messages**       | Recovery after rapidly received commands, prevention of message-content mixing, and preservation of a pending command when another message arrives.                                                              |
+| **Receive-buffer limits**      | Acceptance of 100-character messages including LF and 101-character messages including CRLF, without overflow.                                                                                                   |
+| **Overflow handling**          | Detection and reporting of overflow with 100- and 120-character payloads; handling of remaining bytes after overflow; preservation of a pending command; and subsequent recovery.                                |
+
+The receive-buffer tests follow the behavior described in the [Communication Protocol](#communication-protocol): excess input is not necessarily discarded through the next newline, and a message immediately following an overflow is not guaranteed to be accepted. Recovery testing evidences that subsequent valid communication can resume following an overflow.
+
+These tests exercise the firmware's communication interface, but do not validate the complete physical sensor and alert system.
+
+### Test Results
+
+The following table summarizes the latest recorded results of the project's verification activities.
+
+| Test Suite / Activity             | Results                                                                         | Last Verified |
+| --------------------------------- | ------------------------------------------------------------------------------- | ------------- |
+| Unity — Application Unit Tests    | 102 passed, 0 failed                                                            | 2026-10-15    |
+| Unity — RTC Unit Tests            | 51 passed, 0 failed                                                             | 2026-10-15    |
+| Jasmine — USART System Tests      | 17 specs passed, 0 failed                                                       | 2026-10-15    |
+| Debug and Release Firmware Builds | Successful                                                                      | 2026-10-15    |
+| GitHub Actions — All Three Jobs   | Successful                                                                      | 2026-10-15    |
+| ST-LINK Programming and Debugging | Release firmware programmed and launched; Debug breakpoint successfully reached | 2026-10-15    |
+
+The Unity tests and firmware compilation checks were executed both locally and through GitHub Actions. The Jasmine USART system tests were executed locally with an STM32 Nucleo board connected, rather than through GitHub Actions.
+
+The dates represent the most recent recorded successful execution of each activity, not necessarily the date of the latest source-code revision. You may also view the current Github Actions workflow history for this repository [here](https://github.com/CodeyBrody/RedundantTempSensor/actions).
+
+### Running the Tests
+
+#### C Unit Tests
+
+Prerequisites: CMake, Ninja, and a native C compiler (such as GCC). The STM32 board is not required.
+
+From the repository root:
 
 ```bash
-cmake -S tests -B tests/build/Tests -G Ninja
-cmake --build tests/build/Tests
-ctest --test-dir tests/build/Tests --output-on-failure
+cmake -S tests -B tests/build/ci -G Ninja
+cmake --build tests/build/ci
+ctest --test-dir tests/build/ci --output-on-failure
 ```
 
-For the individual Unity case names and totals, run the executables directly:
+CTest executes the test executables registered in the project's `tests/CMakeLists.txt` and reports failures through its exit status.
 
-```bash
-./tests/build/Tests/unit_tests
-./tests/build/Tests/rtc_tests
-```
+> **NOTE:** CTest runs two test executables, each containing multiple individual Unity test cases. Consequently, the number of successful CTest tests run is not the total number of individual unit tests executed.
 
-On **Windows PowerShell**, use the `.exe` executables instead:
+Individual test executables can also be run directly to view Unity's individual test-case results.
 
-```powershell
-.\tests\build\Tests\unit_tests.exe
-.\tests\build\Tests\rtc_tests.exe
-```
+#### USART System Tests
 
-The fakes demonstrate application responses to simulated HAL results; they do **not** simulate I²C electrical behavior, the real sensor's accuracy, interrupt timing, or the complete STM32 hardware environment.
+Prerequisites: Node.js, npm, and a programmed, powered STM32L476RG Nucleo board connected through its ST-LINK virtual COM port.
 
-### Board-Connected USART System Tests
-
-**Location:** [`tests/system/usart/spec/usart.spec.js`](tests/system/usart/spec/usart.spec.js). The 17 Jasmine specs exercise the actual firmware through USART2 over the Nucleo board's ST-LINK virtual serial port at **115200 baud**. They cover LF/CRLF termination; accepted commands and RTC input; rejection and correction of malformed input; consecutive/rapid commands; preservation of a pending message; receive-buffer boundary and overflow behavior; and eventual recovery after an overflow.
-
-For overflow, the implementation **does not discard every remaining byte until the next newline**. Remaining bytes may form a separate message, and an immediately following command may be rejected. The recovery checks establish that a _later_ valid command can be processed; they do not require the first command after an overflow to succeed.
-
-**Run with a programmed, powered Nucleo board connected** and with any other serial monitor closed. Install Node.js and npm, then from the repository root:
+From the repository root:
 
 ```bash
 cd tests/system/usart
@@ -671,53 +710,42 @@ npm ci
 npm test
 ```
 
-The test suite uses **`COM3` by default** or the serial port specified by the `RTS_PORT` environment variable. For example, before `npm test`:
+The tests use a baud rate of **115200** and select the serial port using the `RTS_PORT` environment variable, defaulting to `COM3` when unspecified.
+
+For example, in Windows PowerShell:
 
 ```powershell
-# Windows PowerShell
 $env:RTS_PORT = "COM3"
+npm test
 ```
 
-```bash
-# Linux (use the device path actually assigned to your board)
-export RTS_PORT=/dev/ttyACM0
-```
+Close other programs using the serial port before running the suite. The tests set the device's RTC as part of establishing and verifying communication, so they modify the board's current RTC setting.
 
-Each spec performs a `SET_TIME` exchange to establish a known starting state. Tests therefore **change the device's RTC** and wait for subsequent data messages. An active serial connection and correctly running firmware are required. These tests do not verify the physical temperature sensors, shift registers/LEDs, or buzzer.
+### Continuous Integration — GitHub Actions
 
-### GitHub Actions Continuous Integration
+The project uses [GitHub Actions](https://github.com/CodeyBrody/RedundantTempSensor/actions) to run automated verification checks on each push, pull request, and manual workflow dispatch.
 
-The workflow is maintained in [`.github/workflows/ci.yml`](.github/workflows/ci.yml) and is triggered on pushes, pull requests, or manual dispatch. The workflow includes three categories of checks: native C unit tests, ARM firmware builds, and JavaScript syntax checks.
+Three independent CI jobs are defined in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-| CI job              | Automated check                                                                                                      | What it does **not** establish                                |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `unity-tests`       | Configures and builds both native C test executables; executes them with CTest.                                      | Real sensor, peripheral, or hardware timing behavior.         |
-| `firmware-build`    | ARM cross-compiles both `Debug` and `Release` firmware using the project's CMake presets.                            | Successful flashing, boot, or operation on the board.         |
-| `javascript-checks` | Uses Node.js 24, runs `npm ci` in `tests/system/usart`, and syntax-checks `spec/usart.spec.js` using `node --check`. | Passing Jasmine specs or a working USART/physical connection. |
+| CI job                | Verification performed                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Unity Tests**       | Builds and executes registered C unit-test executables using CMake, Ninja, and CTest.                     |
+| **Firmware Build**    | Configures and cross-compiles both Debug and Release firmware configurations using the ARM GNU toolchain. |
+| **JavaScript Checks** | Installs npm dependencies and performs a Node.js syntax check on the Jasmine test specifications.         |
 
-**The hardware-connected Jasmine suite does not run in GitHub-hosted CI.** Consequently, a green CI result means the configured source, build, and host-unit checks passed—not that the complete assembled temperature-monitoring system was validated.
+The JavaScript CI job **does not execute the hardware-connected Jasmine tests**, which require additional resources to be run (such as access to the STM32 board and its serial interface).
 
-### Physical Validation and Remaining Gaps
+Similarly, successful Debug and Release builds establish that the firmware compiles and links, not that either configuration has been functionally validated on the target hardware.
 
-The automated suites and previously reported board-connected USART results should be complemented by **bench tests of the assembled device**. Physical results for the following areas are not documented as complete in this source archive:
+### Validation Status and Limitations
 
-- Normal operation with all three TMP102 sensors and operation with one, two, or zero communicating sensors, including disconnect/reconnect recovery.
-- Real-sensor disagreement and temperature-boundary fault scenarios, including the resulting display-temperature choice.
-- Per-sensor LED indications and buzzer behavior during fault transitions and all-sensors-unavailable conditions.
-- Outgoing `D:` and `E:` records, including timestamps, temperatures, fault symbols, and ordering under actual hardware faults.
-- Sampling cadence, non-hanging behavior when I²C communication fails, repeated fault/recovery cycles, and longer-duration operation.
+Host-side unit tests, USART system tests, and firmware build checks provide verification evidence for several significant portions of the project.
 
-No environmental qualification, calibrated temperature-accuracy measurement, or formal worst-case timing analysis is claimed. In particular, the unit-level all-outlier fallback is a **documented design choice**, not proof that a chosen temperature remains reliable when all readings have been marked invalid. Likewise, the serial overflow tests establish the implemented recovery behavior rather than guaranteeing lossless command delivery.
+However, complete integration testing of the assembled hardware, including physical sensor failures and recovery, fault indication through LEDs and the buzzer, and end-to-end operation under varied sensor conditions, is beyond the scope of the tests recorded here in this README.
 
-### Test Traceability and Maintenance
+The test suites focus on the response of certain aspects of the system in select scenarios and boundary conditions. They do not establish exhaustive coverage of all possible inputs or hardware states, nor do they establish the suitability of the system for safety-critical or production use.
 
-The behavior-to-suite tables above provide **informal traceability** to the behavioral descriptions in this README and to the linked test directories. Test names describe scenarios and expected outcomes; there are no formal requirement IDs. No verified defect-discovery history is maintained here, so this README does not attribute specific fixed defects to particular tests.
-
-To extend the tests:
-
-1. Add a C test under [`tests/unit/`](tests/unit/); register its source in [`tests/CMakeLists.txt`](tests/CMakeLists.txt) and its `RUN_TEST(...)` call in [`tests/unit/test_runner.c`](tests/unit/test_runner.c). RTC tests use their own runner in [`tests/unit/rtc/test_rtc.c`](tests/unit/rtc/test_rtc.c).
-2. Add a serial spec named `*.spec.js` under [`tests/system/usart/spec/`](tests/system/usart/spec/) so it is discovered by [`jasmine.mjs`](tests/system/usart/spec/support/jasmine.mjs). Extend the JavaScript syntax-check CI step to include new spec files if applicable.
-3. Name tests for the **behavior and condition being checked**, rerun the affected suite, and update this section when counts, coverage, or known limitations change.
+Future validation may be focused on the complete sensor, firmware, and alert system operating together under both normal and fault conditions.
 
 ---
 

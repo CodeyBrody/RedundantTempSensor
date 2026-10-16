@@ -8,8 +8,8 @@
 uint8_t rxBuf[BUFFER_SIZE];           // Create a buffer to receive incoming data over USART
 uint8_t rxByte;                       // To hold the next incoming byte
 uint8_t rxIndex = 0;                  // To keep track of the index for the next byte in the rxBuf
-volatile uint16_t interruptError = 0; // A variable to both signal that an error has occured in an
-                                      // interrupt, and to signify which error occured
+volatile uint16_t interruptError = 0; // A variable to both signal that an error has occurred in an
+                                      // interrupt, and to signify which error occurred
 
 volatile uint8_t fullMessageReceived = 0; // A flag to signal when a full message has been received
 

@@ -17,15 +17,15 @@
 #define BUZZER_PIN GPIO_PIN_7
 
 /*Assign each LED in use to a specific shift register output (define in hardware.c)*/
+extern const int SENSOR_0_LED_G;
+extern const int SENSOR_0_LED_Y;
+extern const int SENSOR_0_LED_R;
 extern const int SENSOR_1_LED_G;
 extern const int SENSOR_1_LED_Y;
 extern const int SENSOR_1_LED_R;
 extern const int SENSOR_2_LED_G;
 extern const int SENSOR_2_LED_Y;
 extern const int SENSOR_2_LED_R;
-extern const int SENSOR_3_LED_G;
-extern const int SENSOR_3_LED_Y;
-extern const int SENSOR_3_LED_R;
 
 /*Arrays to hold shift register output numbers for different types of LEDs (index of array used to
  * determine which sensor is using which LED)*/

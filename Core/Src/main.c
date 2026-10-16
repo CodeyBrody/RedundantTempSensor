@@ -153,7 +153,7 @@ int main(void)
             prepNextSensorRead(); // Prepare for the next sensor reading/polling session
         }
         usartMessageHandler();   // Handle any messages received via USART
-        interruptErrorHandler(); // Log any errors that occured based on flags set during interrupt
+        interruptErrorHandler(); // Log any errors that occurred based on flags set during interrupt
                                  // code
         updateBuzzer(); // Turns off the buzzer if the buzzer is active and no longer supposed to be
                         // turned on

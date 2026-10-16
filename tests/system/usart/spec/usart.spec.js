@@ -373,7 +373,7 @@ describe("USART system tests", () => {
       expected_string =
         "The rxBuf received a message or command with too many characters.";
 
-      overflowedText = "X".repeat(payloadLength % 100);
+      const overflowedText = "X".repeat(payloadLength % 100);
 
       const overflowPromise = waitForAllText(
         port,
@@ -390,9 +390,9 @@ describe("USART system tests", () => {
       const responsePromise = waitForText(port, "SEND_TIME\r\n", 3000);
 
       await writeAndDrain(port, "SET_TIME\n");
-      receivedPromise = await responsePromise;
+      const recovery = await responsePromise;
 
-      expect(receivedPromise).toContain("SEND_TIME\r\n");
+      expect(recovery).toContain("SEND_TIME\r\n");
     }, 45000);
   }
 

@@ -20,7 +20,7 @@ void usartMessageHandler(void)
             int8_t returnCode = RTC_SetTime(); // Attempt to set the RTC with the received data
             if (returnCode)
             {                       // If an error occurs...
-                switch (returnCode) // Log the appripriate error
+                switch (returnCode) // Log the appropriate error
                 {
                     case 1:
                         logError(RTC_FORMATTING_ERROR, -1); // That could be a formatting error...
@@ -35,7 +35,7 @@ void usartMessageHandler(void)
                         logError(UNRECOGNIZED_ERROR_RECEIVED, -1);
                         break;
                 }
-                // If an error occured, resend the "SEND_TIME" message and keep setTime = 1
+                // If an error occurred, resend the "SEND_TIME" message and keep setTime = 1
                 usb_print("SEND_TIME\r\n");
                 setTime = 1;
             }

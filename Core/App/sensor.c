@@ -63,7 +63,7 @@ void setupSensors(uint8_t SensorCount, Sensor sensors[])
         logError(SENSORS_NOT_DETECTED, discoveredSensorCount); //...log an error
     }
 
-    // Initialize sensor structs (including thosw with addresses not discovered, in case
+    // Initialize sensor structs (including those with addresses not discovered, in case
     // communication with them is established later during operation)
     initSensorArray(SensorCount, sensors);
 }

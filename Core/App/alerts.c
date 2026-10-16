@@ -107,7 +107,7 @@ void activateBuzzer(buzzType duration /*The duration of the desired buzz (in ms)
     buzzerOn();
 }
 
-/*This function sets the buzzer (activatiing or deactivating it for the appropriate amount of time)
+/*This function sets the buzzer (activating or deactivating it for the appropriate amount of time)
  * based on the fault values of the sensors in the `sensors[]` array*/
 void setBuzzer(Sensor sensors[SENSOR_COUNT])
 {

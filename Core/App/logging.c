@@ -269,7 +269,7 @@ void BUFFER_FULL_MESSAGE(void)
 {
     usb_print("The buffer is currently full of a command that has yet to be processed.");
     usb_print_delimiter(" ");
-    usb_print("Please resend the prior message.");
+    usb_print("Please resend the discarded message.");
 }
 
 void BUFFER_OVERFLOW_MESSAGE(void)

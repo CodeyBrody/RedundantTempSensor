@@ -25,7 +25,7 @@ uint8_t SakamotoAlgo(uint16_t fullYear, RTC_DateTypeDef sDate)
     uint8_t t[12] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 
     // Avoid problems with a negative year (in the first 2 months) for year 0000
-    // This works since weekday patterns (in a calender year) repeat every 400 years
+    // This works since weekday patterns (in a calendar year) repeat every 400 years
     if (year == 0)
     {
         year = 400;
@@ -158,7 +158,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 
     calculated_entry = calculate_time(11, 12);
 
-    if (!(calculated_entry <= 23 && calculated_entry >= 0))
+    if (!(calculated_entry <= 23))
     {
         return 2;
     }
@@ -169,7 +169,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 
     calculated_entry = calculate_time(14, 15);
 
-    if (!(calculated_entry <= 59 && calculated_entry >= 0))
+    if (!(calculated_entry <= 59))
     {
         return 2;
     }
@@ -180,7 +180,7 @@ uint8_t RTC_checkTimeInput(const char *input, RTC_DateTypeDef *sDate, RTC_TimeTy
 
     calculated_entry = calculate_time(17, 18);
 
-    if (!(calculated_entry <= 59 && calculated_entry >= 0))
+    if (!(calculated_entry <= 59))
     {
         return 2;
     }
@@ -215,7 +215,7 @@ int8_t RTC_SetTime(void)
             return 1;
         }
         else if (RTC_checkTime_return == 2)
-        { // If it returned 2, pass along an invlaid date/time error by also returning 2
+        { // If it returned 2, pass along an invalid date/time error by also returning 2
             return 2;
         }
         else

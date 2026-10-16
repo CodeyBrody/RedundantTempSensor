@@ -39,7 +39,7 @@ void test_error_guesses_all0temps(void)
     TEST_ASSERT_FLOAT_WITHIN(.0001, 0.0f, sensors[2].currTemp);
 }
 
-// One maximum, one minumum, one in the middle
+// One maximum, one minimum, one in the middle
 void test_error_guesses_bothBoundsAndMiddle(void)
 {
 

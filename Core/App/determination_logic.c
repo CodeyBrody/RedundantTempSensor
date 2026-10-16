@@ -92,7 +92,7 @@ float determineTemp(Sensor sensors[])
         return display_temperature;
     }
 
-    /*If only one one currently valid temperature measurement is available, use that one...*/
+    /*If only one currently valid temperature measurement is available, use that one...*/
     if (validReadingCount == 1)
     {
         display_temperature = sensors[validIndex].currTemp;
